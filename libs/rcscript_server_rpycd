@@ -1,0 +1,26 @@
+#!/bin/bash
+# chkconfig: 235 99 01
+# description: server_rpycd exposes services to client
+
+. /etc/init.d/functions
+
+BASE=server_rpycd
+BPATH=/usr/local/bin
+PIDFILE="/var/tmp/server_rpycd.pid"
+
+case "$1" in
+start)
+    status $BASE >/dev/null 2>&1 || rm -f $PIDFILE
+    $BPATH/$BASE && echo "Starting $BASE..."
+    ;;
+stop)
+    if [ ! -f $PIDFILE ]; then
+        echo "$BASE not running"
+    else
+        echo "Stopping $BASE..."
+        kill -15 `cat $PIDFILE`
+    fi
+    ;;
+status)
+    status $BASE
+esac

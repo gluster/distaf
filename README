@@ -1,0 +1,49 @@
+glusterfs test automation framework
+==============================================
+
+This is a glusterfs test automation framework written in python. The framework
+is written with portability in mind. This just needs bunch of ip addresses or
+resolvable hostnames. The ip address may be of the bare metal machine, vm or
+even docker container.
+
+How to run
+=============
+
+1. scp gluster_utils/server_rpycd /usr/local/bin to each of your server nodes.
+
+2. scp gluster_libs/rcscript_server_rpycd to /etc/init.d/server_rpycd to all
+   of your servers/nodes.
+
+3. Start the server using /etc/init.d/server_rpycd start
+
+4. Run the following commands in each of your machines.
+   chkconfig server_rpycd --add
+   chkconfig server_rpycd on
+
+5. Source the config.sh file which has information about test environment.
+
+6. Now run main.py with proper options
+   - To run only test case
+     # python main.py -t 123456
+
+   - To run bunch of test cases
+     # python main.py -t "12345 06783"
+
+   - To run all tests in a directory
+     # python main.py -d snapshot
+
+
+How to write tests
+====================
+
+1. Create a directory inside ./tests_d with your component name.
+   The name should qualify to be a python variable which can be importable
+   from other modules.
+
+2. Write a testcase using the test_*.py
+
+3. For test skeleton and example please look at the
+   example/snapshot/test_basic_snapshot.py
+
+TODO:
+# Add TODO here :)

@@ -1,0 +1,6 @@
+export MGMT_NODE="mgmt_node"
+export NODES="node0 node1 node2 node3"
+export PEERS="peer0"
+export CLIENTS="client0 client1"
+export GM_NODES="gm_master0 gm_master1"
+export GS_NODES="gs_slave0 gs_slave1"
