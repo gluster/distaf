@@ -2,9 +2,21 @@ glusterfs test automation framework
 ==============================================
 
 This is a glusterfs test automation framework written in python. The framework
-is written with portability in mind. This just needs bunch of ip addresses or
-resolvable hostnames. The ip address may be of the bare metal machine, vm or
-even docker container.
+is written with portability in mind. It just needs ip addresses or resolvable
+hostnames of servers and clients. The servers and clients can be physical machines
+of vms or even linux conatiners.
+
+Architecture of the Framework
+==============================
+An rpc server (server_rpycd) runs as a daemon on each of the nodes in the test
+cluster and listens in a particular port. The management node (The node from which
+this test suite is executed) connects to each nodes in the test cluster.
+
+The connection to each node is done at the start of tests and each test case uses
+this connection to execute any commands in the servers/clients. The connection is
+tear down at the end of tests. Any disconnection for any reason will trigger a
+reconnection from the management node.
+
 
 How to run
 =============
@@ -43,7 +55,22 @@ How to write tests
 2. Write a testcase using the test_*.py
 
 3. For test skeleton and example please look at the
-   example/snapshot/test_basic_snapshot.py
+   tests_d/example/test_basic_gluster_tests.py
 
-TODO:
-# Add TODO here :)
+TODO
+=====
+
+* Automating the initial setup part using pexpect or expect
+* Better test case selection logic
+* Better logging of test cases/results
+* Forcing the order of execution if testcases whenever required
+* Integrating with nose tests for Jenkins friendly reporting format
+* Logs monitoring in each servers
+* More and more library functions
+
+Integration Work
+=================
+
+I am also spending some time on integrating this project with dockit (https://github.com/humblec/dockit)
+This would enable to simulate multinode testing from single host node. Each of the servers and clients
+would be docker containers.
