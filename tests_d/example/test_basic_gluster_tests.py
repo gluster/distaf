@@ -1,4 +1,5 @@
-from gluster_libs.util import testcase, create_volume, mount_volume
+import time
+from libs.util import testcase, create_volume, mount_volume
 
 @testcase("gluster_basic_test")
 def gluster_basic_test(tc):
@@ -12,7 +13,7 @@ def gluster_basic_test(tc):
     mountpoint = '/mnt/glusterfs'
     rc = True
     for peer in tc.nodes[1:]:
-        ret, out, err  = tc.run(node, "gluster peer probe %s" % peer)
+        ret, out, err  = tc.run(mnode, "gluster peer probe %s" % peer)
         if ret != 0:
             rc = False
     if not rc:
@@ -23,9 +24,11 @@ def gluster_basic_test(tc):
         tc.logger.error("volume create failed")
         rc = False
     ret, _, _ = tc.run(mnode, "gluster volume start %s" % volname)
-    if ret[0] != 0:
+    if ret != 0:
         tc.logger.error("Volume start failed")
         rc = False
+    time.sleep(5)
+    tc.run(mnode, "gluster volume status %s" % volname)
     ret, _, _ = mount_volume(volname, 'glusterfs', mountpoint)
     if ret != 0:
         tc.logger.error("mounting volume %s failed" % volname)
@@ -38,4 +41,4 @@ def gluster_basic_test(tc):
         tc.run(tc.clients[0], "umount %s || umount -l %s" % (mountpoint, mountpoint))
     tc.run(mnode, "gluster --mode=script volume stop %s" % volname)
     tc.run(mnode, "gluster --mode=script volume delete %s" % volname)
-    return False
+    return rc

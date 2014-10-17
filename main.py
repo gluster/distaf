@@ -4,7 +4,7 @@ import os
 import sys
 import unittest
 import argparse
-from gluster_libs import util
+from libs import util
 
 ts = []
 if os.getcwd() not in sys.path:
