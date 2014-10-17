@@ -35,15 +35,11 @@ How to run
 5. Source the config.sh file which has information about test environment.
 
 6. Now run main.py with proper options
-   - To run only test case
-     # python main.py -t 123456
+ - To run only test case: `python main.py -t 123456`
 
-   - To run bunch of test cases
-     # python main.py -t "12345 06783"
+   - To run bunch of test cases: `python main.py -t "12345 06783"`
 
-   - To run all tests in a directory
-     # python main.py -d snapshot
-
+   - To run all tests in a directory: `python main.py -d snapshot`
 
 How to write tests
 ====================
