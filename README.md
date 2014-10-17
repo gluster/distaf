@@ -21,20 +21,22 @@ reconnection from the management node.
 How to run
 =============
 
-1. scp gluster_utils/server_rpycd /usr/local/bin to each of your server nodes.
+1. Clone this git repo and cd in to it i.e. `cd glusterfs-automation-framework`
 
-2. scp gluster_libs/rcscript_server_rpycd to /etc/init.d/server_rpycd to all
+2. scp libs/server_rpycd /usr/local/bin to each of your server nodes.
+
+3. scp libs/rcscript_server_rpycd to /etc/init.d/server_rpycd to all
    of your servers/nodes.
 
-3. Start the server using /etc/init.d/server_rpycd start
+4. Start the server using /etc/init.d/server_rpycd start
 
-4. Run the following commands in each of your machines.
+5. Run the following commands in each of your machines.
    chkconfig server_rpycd --add
    chkconfig server_rpycd on
 
-5. Source the config.sh file which has information about test environment.
+6. Source the config.sh file which has information about test environment.
 
-6. Now run main.py with proper options
+7. Now run main.py with proper options
  - To run only test case: `python main.py -t 123456`
 
    - To run bunch of test cases: `python main.py -t "12345 06783"`
