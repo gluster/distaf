@@ -9,7 +9,7 @@ of vms or even linux conatiners.
 Architecture of the Framework
 ==============================
 An rpc server (server_rpycd) runs as a daemon on each of the *nodes* in the test
-cluster and listens in a particular port. *The management node* (The node from which
+cluster and listens on a particular port. *The management node* (The node from which
 this test suite is executed) connects to each nodes in the test cluster.
 
 The connection to each node is done at the start of tests and each test case uses
@@ -32,7 +32,7 @@ The machines required to run automation can be devided broadly in to two categor
 2. scp libs/server_rpycd /usr/local/bin to each of your server nodes.
 
 3. scp libs/rcscript_server_rpycd to /etc/init.d/server_rpycd to all
-   of your servers/nodes. 
+   of your servers/nodes.
 
 ###On the nodes in test cluster
 1.  Install *rpyc* Python module i.e. `easy_install rpyc`
@@ -54,7 +54,13 @@ How to run
 
    - To run multiple test cases: `python main.py -t "basic_test0 basic_test1"`
 
-   - To run all tests in a directory: `python main.py -d snapshot`
+   - To run all tests in a directory: `python main.py -d snapshot`  
+####Note:
+     1. Automation test logs are at /var/log/tests/ both at management and test nodes.
+
+     2. If you want run the automation as non root user, follow the steps below.
+          * create the directory as root `mkdir /var/log/tests`  
+          * Add the user as the owner for the directory i.e. `chown -R <user> /var/log/tests`  
 
 How to write tests
 ====================

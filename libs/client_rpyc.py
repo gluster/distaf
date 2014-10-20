@@ -54,8 +54,14 @@ class big_bang:
             async_object = rpyc.async(c0.root.run)
             self.connection_handles[node] = ( c0, async_object)
 
+        client_logfile = "/var/log/tests/client_rpyc.log"
+        client_logdir = os.path.dirname(client_logfile)
+
+        #Check if the log directory exits, if not create it
+        if not os.path.exists(client_logdir):
+            os.makedirs(client_logdir)
         self.logger = logging.getLogger('rpyc_client')
-        self.lhndlr = logging.FileHandler('/var/log/tests/client_rpyc.log')
+        self.lhndlr = logging.FileHandler(client_logfile)
         formatter = logging.Formatter('%(asctime)s %(levelname)s %(funcName)s %(message)s')
         self.lhndlr.setFormatter(formatter)
         self.logger.addHandler(self.lhndlr)
