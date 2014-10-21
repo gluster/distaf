@@ -43,13 +43,12 @@ The machines required to run automation can be devided broadly in to two categor
    chkconfig server_rpycd --add
    chkconfig server_rpycd on
 
-4. Source the config.sh file which has information about test environment.
-
-
 How to run
 =============
 
 ###On the management node
+ - Source the config.sh file which has information about test environment
+
  - To run only a specific test case: `python main.py -t basic_test`
 
    - To run multiple test cases: `python main.py -t "basic_test0 basic_test1"`
