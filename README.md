@@ -47,13 +47,15 @@ How to run
 =============
 
 ###On the management node
- - Source the config.sh file which has information about test environment
+ - Source the config.sh file which has information about test environment.
+
+ - To run all test cases: `python main.py` or `./main.py`
 
  - To run only a specific test case: `python main.py -t basic_test`
 
-   - To run multiple test cases: `python main.py -t "basic_test0 basic_test1"`
+ - To run multiple test cases: `python main.py -t "basic_test0 basic_test1"`
 
-   - To run all tests in a directory: `python main.py -d snapshot`  
+ - To run all tests in a directory: `python main.py -d snapshot`  
 ####Note:
      1. Automation test logs are at /var/log/tests/ both at management and test nodes.
 
@@ -68,7 +70,7 @@ How to write tests
 
    Note: These directories should be importable from other modules, so the name should be a valid Python variable.
 
-2. The test should follow test_<test-name>.py format.
+2. The test should follow test_*test name*.py format.
 
 3. For test skeleton and example please look at the
    tests_d/example/test_basic_gluster_tests.py
