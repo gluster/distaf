@@ -84,6 +84,7 @@ TODO
 * Forcing the order of execution if testcases whenever required
 * Integrating with nose tests for Jenkins friendly reporting format
 * Logs monitoring in each servers
+* setup_fs to create the initial xfs/ext4 partition before running the tests
 * More and more library functions
 
 Integration Work
