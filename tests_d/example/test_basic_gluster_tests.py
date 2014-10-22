@@ -1,8 +1,8 @@
 import time
-from libs.util import testcase, create_volume, mount_volume
+from libs.util import testcase, create_volume, mount_volume, tc
 
 @testcase("gluster_basic_test")
-def gluster_basic_test(tc):
+def gluster_basic_test():
     tc.logger.info("Testing gluster volume create and mounting")
     ret, _ = tc.run_servers("pgrep glusterd || /etc/init.d/glusterd start")
     if not ret:

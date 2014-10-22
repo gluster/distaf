@@ -7,7 +7,7 @@ def testcase(name):
     global testcases
     def decorator(func):
         def wrapper(self):
-            ret = func(tc)
+            ret = func()
             self.assertTrue(ret, "Testcase %s failed" % name)
             return ret
         testcases.append((name, wrapper))
@@ -15,61 +15,8 @@ def testcase(name):
 
     return decorator
 
-
-def assert_true(var):
-    try:
-        assert var
-    except AssertionError:
-        #TODO: use a flag per testcase and update them
-        pass
-
-def assert_equal(var0, var1):
-    try:
-        assert var0 == var1
-    except AssertionError:
-        #TODO: use a flag per testcase and update them
-        pass
-
 def finii():
     tc.fini()
-
-def get_vol_types():
-    if 'VOLNAME' in os.environ:
-        volname = os.environ['VOLNAME']
-    else:
-        volname = 'testvol'
-
-    if 'DISTCOUNT' in os.environ:
-        distcount = os.environ['DISTCOUNT']
-    else:
-        distcount = 2
-
-    if 'REPCOUNT' in os.environ:
-        repcount = os.environ['REPCOUNT']
-    else:
-        repcount = 2
-
-    if 'STRIPECOUNT' in os.environ:
-        strpcount = os.environ['STRIPECOUNT']
-    else:
-        strpcount = 1
-
-    if 'TRANSTYPE' in os.environ:
-        transtype = os.environ['TRANSTYPE']
-    else:
-        transtype = 'tcp'
-
-    if 'MOUNTPOINT' in os.environ:
-        mountpoint = os.environ['MOUNTPOINT']
-    else:
-        mountpoint = '/mnt/glusterfs'
-
-    if 'MOUNT_TYPE' in os.environ:
-        mounttype = os.environ['MOUNT_TYPE']
-    else:
-        mounttype = 'glusterfs'
-
-    return (volname, distcount, repcount, strpcount, transtype, mountpoint, mounttype)
 
 def create_volume(volname, dist, rep=1, stripe=1, trans='tcp', servers=[], snap=False):
     """
@@ -106,7 +53,6 @@ def create_volume(volname, dist, rep=1, stripe=1, trans='tcp', servers=[], snap=
     ttype = "transport %s" % trans
     ret = tc.run(servers[0], "gluster volume create %s %s %s %s %s" % \
                 (volname, replica, stripec, ttype, bricks_list))
-    assert_equal(ret[0], 0)
     return ret
 
 def mount_volume(volname, mtype='glusterfs', mpoint='/mnt/glusterfs', mserver='', mclient='', options=''):
@@ -115,6 +61,7 @@ def mount_volume(volname, mtype='glusterfs', mpoint='/mnt/glusterfs', mserver=''
         Takes the volume name as mandatory argument
 
         Returns a tuple of (returncode, stdout, stderr)
+        Returns (0, '', '') if already mounted
     """
     global tc
     if mserver == '':
@@ -123,19 +70,100 @@ def mount_volume(volname, mtype='glusterfs', mpoint='/mnt/glusterfs', mserver=''
         mclient = tc.clients[0]
     if options != '':
         options = "-o %s" % options
+    if mtype == 'nfs' and options != '':
+        options = "%s,vers=3" % options
+    elif mtype == 'nfs' and options == '':
+        options = '-o vers=3'
+    ret, _, _ = tc.run(mclient, "mount | grep %s | grep %s | grep \"%s\"" \
+                % (volname, mpoint, mserver))
+    if ret == 0:
+        tc.logger.debug("Volume %s is already mounted at %s" \
+        % (volname, mpoint))
+        return (0, '', '')
     mcmd = "mount -t %s %s %s:%s %s" % (mtype, options, mserver,volname, mpoint)
     tc.run(mclient, "test -d %s || mkdir -p %s" % (mpoint, mpoint))
     return tc.run(mclient, mcmd)
 
-def env_setup_servers():
+def get_config_data(param=None):
     """
-        Sets up the env for all the tests
-        Install all the gluster bits and it's dependencies
-        Installs the xfs bits and then formats the backend fs for gluster use
+        Gets all the config data from the environmental variables
 
-        Returns 0 on success and non-zero upon failing
+        Returns the value of requested parameter
+        If nothing is requested the whole dict is sent
+        If the requested parameter does not exist, the False is returned
     """
-    global tc
-    ret, rdict = tc.run_servers(". /usr/local/bin/qeTest_env_setup.sh \
-                                && env_setup_servers")
-    return ret
+    config_dict = {}
+    if 'MOUNT_TYPE' in os.environ:
+        config_dict['mount_type'] = os.environ['MOUNT_TYPE']
+    else:
+        config_dict['mount_type'] = 'glusterfs'
+    if 'GEO_CLIENT_USER' in os.environ:
+        config_dict['guser'] = os.environ['GEO_CLIENT_USER']
+    else:
+        config_dict['guser'] = 'root'
+    if 'FILE_TYPE' in os.environ:
+        config_dict['file_type'] = os.environ['FILE_TYPE']
+    else:
+        config_dict['file_type'] = 'text'
+    if 'DIR_STRUCT' in os.environ:
+        config_dict['dir_struct'] = os.environ['DIR_STRUCT']
+    else:
+        config_dict['dir_struct'] = 'multi'
+    if 'NUM_FILES_MULTI' in os.environ:
+        config_dict['nf'] = os.environ['NUM_FILES_MULTI']
+    else:
+        config_dict['nf'] = 5
+    if 'NUM_FILES_SINGLE' in os.environ:
+        config_dict['ns'] = os.environ['NUM_FILES_SINGLE']
+    else:
+        config_dict['ns'] = 1000
+    if 'NUM_THREADS' in os.environ:
+        config_dict['nt'] = os.environ['NUM_THREADS']
+    else:
+        config_dict['nt'] = 5
+    if 'DIRS_BREADTH' in os.environ:
+        config_dict['breadth'] = os.environ['DIRS_BREADTH']
+    else:
+        config_dict['breadth'] = 5
+    if 'DIRS_DEPTH' in os.environ:
+        config_dict['depth'] = os.environ['DIRS_DEPTH']
+    else:
+        config_dict['depth'] = 5
+    if 'SIZE_MIN' in os.environ:
+        config_dict['minsize'] = os.environ['SIZE_MIN']
+    else:
+        config_dict['minsize'] = '5k'
+    if 'SIZE_MAX' in os.environ:
+        config_dict['maxsize'] = os.environ['SIZE_MAX']
+    else:
+        config_dict['maxsize'] = '10k'
+    if 'VOLNAME' in os.environ:
+        config_dict['volname'] = os.environ['VOLNAME']
+    else:
+        config_dict['volname'] = 'testvol'
+    if 'DISTCOUNT' in os.environ:
+        config_dict['dist'] = os.environ['DISTCOUNT']
+    else:
+        config_dict['dist'] = 2
+    if 'REPCOUNT' in os.environ:
+        config_dict['rep'] = os.environ['REPCOUNT']
+    else:
+        config_dict['rep'] = 2
+    if 'STRIPECOUNT' in os.environ:
+        config_dict['stripe'] = os.environ['STRIPECOUNT']
+    else:
+        config_dict['stripe'] = 1
+    if 'TRANSTYPE' in os.environ:
+        config_dict['transport'] = os.environ['TRANSTYPE']
+    else:
+        config_dict['transport'] = 'tcp'
+    if 'MOUNTPOINT' in os.environ:
+        config_dict['mountpoint'] = os.environ['MOUNTPOINT']
+    else:
+        config_dict['mountpoint'] = '/mnt/glusterfs'
+    if param == None:
+        return config_dict
+    elif param in config_dict.keys():
+        return config_dict[param]
+    else:
+        return False
