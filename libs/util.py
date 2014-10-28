@@ -92,75 +92,27 @@ def get_config_data(param=None):
         If nothing is requested the whole dict is sent
         If the requested parameter does not exist, the False is returned
     """
-    config_dict = {}
-    if 'MOUNT_TYPE' in os.environ:
-        config_dict['mount_type'] = os.environ['MOUNT_TYPE']
-    else:
-        config_dict['mount_type'] = 'glusterfs'
-    if 'GEO_CLIENT_USER' in os.environ:
-        config_dict['guser'] = os.environ['GEO_CLIENT_USER']
-    else:
-        config_dict['guser'] = 'root'
-    if 'FILE_TYPE' in os.environ:
-        config_dict['file_type'] = os.environ['FILE_TYPE']
-    else:
-        config_dict['file_type'] = 'text'
-    if 'DIR_STRUCT' in os.environ:
-        config_dict['dir_struct'] = os.environ['DIR_STRUCT']
-    else:
-        config_dict['dir_struct'] = 'multi'
-    if 'NUM_FILES_MULTI' in os.environ:
-        config_dict['nf'] = os.environ['NUM_FILES_MULTI']
-    else:
-        config_dict['nf'] = 5
-    if 'NUM_FILES_SINGLE' in os.environ:
-        config_dict['ns'] = os.environ['NUM_FILES_SINGLE']
-    else:
-        config_dict['ns'] = 1000
-    if 'NUM_THREADS' in os.environ:
-        config_dict['nt'] = os.environ['NUM_THREADS']
-    else:
-        config_dict['nt'] = 5
-    if 'DIRS_BREADTH' in os.environ:
-        config_dict['breadth'] = os.environ['DIRS_BREADTH']
-    else:
-        config_dict['breadth'] = 5
-    if 'DIRS_DEPTH' in os.environ:
-        config_dict['depth'] = os.environ['DIRS_DEPTH']
-    else:
-        config_dict['depth'] = 5
-    if 'SIZE_MIN' in os.environ:
-        config_dict['minsize'] = os.environ['SIZE_MIN']
-    else:
-        config_dict['minsize'] = '5k'
-    if 'SIZE_MAX' in os.environ:
-        config_dict['maxsize'] = os.environ['SIZE_MAX']
-    else:
-        config_dict['maxsize'] = '10k'
-    if 'VOLNAME' in os.environ:
-        config_dict['volname'] = os.environ['VOLNAME']
-    else:
-        config_dict['volname'] = 'testvol'
-    if 'DISTCOUNT' in os.environ:
-        config_dict['dist'] = os.environ['DISTCOUNT']
-    else:
-        config_dict['dist'] = 2
-    if 'REPCOUNT' in os.environ:
-        config_dict['rep'] = os.environ['REPCOUNT']
-    else:
-        config_dict['rep'] = 2
-    if 'STRIPECOUNT' in os.environ:
-        config_dict['stripe'] = os.environ['STRIPECOUNT']
-    else:
-        config_dict['stripe'] = 1
-    if 'TRANSTYPE' in os.environ:
-        config_dict['transport'] = os.environ['TRANSTYPE']
-    else:
-        config_dict['transport'] = 'tcp'
-    if 'MOUNTPOINT' in os.environ:
-        config_dict['mountpoint'] = os.environ['MOUNTPOINT']
-    else:
-        config_dict['mountpoint'] = '/mnt/glusterfs'
+    config_dict = {
+        'VOLNAME'         : 'testvol',
+        'DIST_COUNT'      : 2,
+        'REP_COUNT'       : 2,
+        'STRIPE'          : 1,
+        'TRANS_TYPE'      : 'tcp',
+        'MOUNT_TYPE'      : 'glusterfs',
+        'MOUNTPOINT'      : '/mnt/glusterfs',
+        'GEO_USER'        : 'root',
+        'FILE_TYPE'       : 'text',
+        'DIR_STRUCT'      : 'multi',
+        'NUM_FILES_MULTI' : 5,
+        'NUM_FILES_SING'  : 1000,
+        'NUM_THREADS'     : 5,
+        'DIRS_BREADTH'    : 5,
+        'DIRS_DEPTH'      : 5,
+        'SIZE_MIN'        : '5k',
+        'SIZE_MAX'        : '10k' }
+    for conf in config_dict.keys():
+        if conf in os.environ:
+            config_dict[conf] = os.environ[conf]
     if param == None:
         return config_dict
     elif param in config_dict.keys():

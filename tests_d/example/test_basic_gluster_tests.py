@@ -1,5 +1,6 @@
 import time
-from libs.util import testcase, create_volume, mount_volume, tc
+from libs.util import tc
+from libs.util import testcase, create_volume, mount_volume, get_config_data
 
 @testcase("gluster_basic_test")
 def gluster_basic_test():
@@ -8,9 +9,9 @@ def gluster_basic_test():
     if not ret:
         tc.logger.error("Unable to start glusterd. Please check the logs")
         return False
-    volname = 'testvol'
     mnode = tc.nodes[0]
-    mountpoint = '/mnt/glusterfs'
+    conf_dict = get_config_data()
+    volname = conf_dict['VOLNAME']
     rc = True
     for peer in tc.nodes[1:]:
         ret, out, err  = tc.run(mnode, "gluster peer probe %s" % peer)
@@ -19,7 +20,8 @@ def gluster_basic_test():
     if not rc:
         tc.logger.error("Peer probe failed in at least one node. Aborting test")
         return False
-    ret, out, err = create_volume(volname, 2, 2, trans='tcp')
+    ret, out, err = create_volume(volname, conf_dict['DIST_COUNT'], \
+                    conf_dict['REP_COUNT'], trans=conf_dict['TRANS_TYPE'])
     if ret != 0:
         tc.logger.error("volume create failed")
         rc = False
@@ -29,7 +31,8 @@ def gluster_basic_test():
         rc = False
     time.sleep(5)
     tc.run(mnode, "gluster volume status %s" % volname)
-    ret, _, _ = mount_volume(volname, 'glusterfs', mountpoint)
+    mountpoint = conf_dict['MOUNTPOINT']
+    ret, _, _ = mount_volume(volname, conf_dict['MOUNT_TYPE'], mountpoint)
     if ret != 0:
         tc.logger.error("mounting volume %s failed" % volname)
         rc = False
