@@ -113,9 +113,12 @@ def get_config_data(param=None):
     for conf in config_dict.keys():
         if conf in os.environ:
             config_dict[conf] = os.environ[conf]
+    tc.config_data = config_dict
     if param == None:
         return config_dict
     elif param in config_dict.keys():
         return config_dict[param]
     else:
         return False
+
+get_config_data()
