@@ -1,6 +1,5 @@
 import time
-from libs.util import tc
-from libs.util import testcase, create_volume, mount_volume, get_config_data
+from libs.util import tc, testcase, create_volume, mount_volume, get_config_data
 
 @testcase("gluster_basic_test")
 def gluster_basic_test():
