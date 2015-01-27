@@ -160,6 +160,7 @@ class big_bang:
                 (cmd, node, perr))
             return (retc, pout, perr)
         p.value = value
+        p.close = lambda: c.close()
         return p
 
     def run_servers(self, command):
