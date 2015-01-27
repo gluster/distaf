@@ -1,6 +1,4 @@
-import re
 import os
-import sys
 import time
 import logging
 from rpyc.utils.zerodeploy import DeployedServer
