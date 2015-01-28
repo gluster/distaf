@@ -1,12 +1,11 @@
 import os
 import re
-from client_rpyc import big_bang
+from libs.client_rpyc import big_bang
 
 testcases = []
 tc = big_bang()
 
 def testcase(name):
-    global testcases
     def decorator(func):
         def wrapper(self):
             ret = func()
@@ -15,10 +14,6 @@ def testcase(name):
         testcases.append((name, wrapper))
         return wrapper
     return decorator
-
-
-def finii():
-    tc.fini()
 
 def create_volume(volname, dist, rep=1, stripe=1, trans='tcp', servers=[], snap=False):
     """
@@ -85,42 +80,3 @@ def mount_volume(volname, mtype='glusterfs', mpoint='/mnt/glusterfs', mserver=''
     mcmd = "mount -t %s %s %s:%s %s" % (mtype, options, mserver,volname, mpoint)
     tc.run(mclient, "test -d %s || mkdir -p %s" % (mpoint, mpoint))
     return tc.run(mclient, mcmd)
-
-def get_config_data(param=None):
-    """
-        Gets all the config data from the environmental variables
-
-        Returns the value of requested parameter
-        If nothing is requested the whole dict is sent
-        If the requested parameter does not exist, the False is returned
-    """
-    config_dict = {
-        'VOLNAME'         : 'testvol',
-        'DIST_COUNT'      : 2,
-        'REP_COUNT'       : 2,
-        'STRIPE'          : 1,
-        'TRANS_TYPE'      : 'tcp',
-        'MOUNT_TYPE'      : 'glusterfs',
-        'MOUNTPOINT'      : '/mnt/glusterfs',
-        'GEO_USER'        : 'root',
-        'FILE_TYPE'       : 'text',
-        'DIR_STRUCT'      : 'multi',
-        'NUM_FILES_MULTI' : 5,
-        'NUM_FILES_SING'  : 1000,
-        'NUM_THREADS'     : 5,
-        'DIRS_BREADTH'    : 5,
-        'DIRS_DEPTH'      : 5,
-        'SIZE_MIN'        : '5k',
-        'SIZE_MAX'        : '10k' }
-    for conf in config_dict.keys():
-        if conf in os.environ:
-            config_dict[conf] = os.environ[conf]
-    tc.config_data = config_dict
-    if param == None:
-        return config_dict
-    elif param in config_dict.keys():
-        return config_dict[param]
-    else:
-        return False
-
-get_config_data()

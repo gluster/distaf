@@ -1,8 +1,9 @@
 import os
 import time
 import logging
-from rpyc.utils.zerodeploy import DeployedServer
+from libs.config_parser import get_config_data
 from plumbum import SshMachine
+from rpyc.utils.zerodeploy import DeployedServer
 
 class big_bang:
 
@@ -10,31 +11,15 @@ class big_bang:
         """
             Initialises the whole environment and establishes connection
         """
-        self.mgmt_node = ''
-        self.clients = self.nodes = self.peers = self.gm_nodes = []
-        self.gm_peers = self.gs_nodes = self.gs_peers = []
-        self.number_nodes = self.number_peers = self.number_gm_nodes = 0
-        self.number_gm_peers = self.number_gs_nodes = self.number_gs_peers = 0
-        self.number_clients = self.number_servers = self.number_masters = 0
-        self.number_slaves =0
+        self.config_dict = get_config_data()
 
-        if 'MGMT_NODE' in os.environ:
-            self.mgmt_node = os.environ['MGMT_NODE']
-        if 'NODES' in os.environ:
-            self.nodes = os.environ['NODES'].split(' ')
-        if 'PEERS' in os.environ:
-            self.peers = os.environ['PEERS'].split(' ')
-        if 'CLIENTS' in os.environ:
-            self.clients = os.environ['CLIENTS'].split(' ')
-        if 'GM_NODES' in os.environ:
-            self.gm_nodes = os.environ['GM_NODES'].split(' ')
-        if 'GM_PEERS' in os.environ:
-            self.gm_peers = os.environ['GM_PEERS'].split(' ')
-        if 'GS_NODES' in os.environ:
-            self.gs_nodes = os.environ['GS_NODES'].split(' ')
-        if 'GS_PEERS' in os.environ:
-            self.gs_peers = os.environ['GS_PEERS'].split(' ')
-
+        self.nodes = self.config_dict['NODES']
+        self.peers = self.config_dict['PEERS']
+        self.clients = self.config_dict['CLIENTS']
+        self.gm_nodes = self.config_dict['GM_NODES']
+        self.gm_peers = self.config_dict['GM_PEERS']
+        self.gs_nodes = self.config_dict['GS_NODES']
+        self.gs_peers = self.config_dict['GS_PEERS']
         self.number_nodes = len(self.nodes)
         self.number_peers = len(self.peers)
         self.number_clients = len(self.clients)
@@ -43,31 +28,32 @@ class big_bang:
         self.number_gs_nodes = len(self.gs_nodes)
         self.number_gs_peers = len(self.gs_peers)
 
-
         self.servers = self.nodes + self.peers + self.gm_nodes + self.gm_peers \
                        + self.gs_nodes + self.gs_peers
         self.all_nodes = self.nodes + self.peers + self.clients + self.gm_nodes\
                          + self.gm_peers + self.gs_nodes + self.gs_peers
+
+        client_logfile = self.config_dict['LOG_FILE']
+        loglevel = getattr(logging, self.config_dict['LOG_LEVEL'].upper())
+        client_logdir = os.path.dirname(client_logfile)
+        if not os.path.exists(client_logdir):
+            os.makedirs(client_logdir)
+        self.logger = logging.getLogger('client_rpyc')
+        self.lhndlr = logging.FileHandler(client_logfile)
+        formatter = logging.Formatter('%(asctime)s %(levelname)s %(funcName)s %(message)s')
+        self.lhndlr.setFormatter(formatter)
+        self.logger.addHandler(self.lhndlr)
+        self.logger.setLevel(loglevel)
+
         self.connection_handles = {}
         self.subp_conn = {}
         for node in self.all_nodes:
+            self.logger.debug("Connecting to node: %s" % node)
             dep = DeployedServer(SshMachine(node, user="root"))
             c = dep.classic_connect()
             self.connection_handles[node] = (dep, c)
             self.subp_conn[node] = c.modules.subprocess
 
-        client_logfile = "/var/log/tests/client_rpyc.log"
-        client_logdir = os.path.dirname(client_logfile)
-
-        #Check if the log directory exits, if not create it
-        if not os.path.exists(client_logdir):
-            os.makedirs(client_logdir)
-        self.logger = logging.getLogger('rpyc_client')
-        self.lhndlr = logging.FileHandler(client_logfile)
-        formatter = logging.Formatter('%(asctime)s %(levelname)s %(funcName)s %(message)s')
-        self.lhndlr.setFormatter(formatter)
-        self.logger.addHandler(self.lhndlr)
-        self.logger.setLevel(logging.DEBUG)
 
     def refresh_connections(self, node, timeout=210):
         self.logger.info("Closing the connection to %s" % node)
@@ -168,7 +154,6 @@ class big_bang:
         sdict = {}
         out_dict = {}
         ret = True
-        self.logger.info("Executing %s on all servers" % command)
         for server in self.servers:
             sdict[server] = self.run_async(server, command)
         for server in self.servers:

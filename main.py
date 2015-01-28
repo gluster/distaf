@@ -4,7 +4,7 @@ import os
 import sys
 import unittest
 import argparse
-from libs import util
+from libs.util import testcases
 
 if os.getcwd() not in sys.path:
     sys.path.append(os.getcwd())
@@ -39,12 +39,12 @@ def set_tests(tests=[]):
     """
     if tests != []:
         for test in tests:
-            for i, t in util.testcases:
+            for i, t in testcases:
                 if i == test:
                     # Add the tests to gluster_tests Test Class
                     setattr(gluster_tests, "test_%s" %i, t)
     else:
-        for i, t in util.testcases:
+        for i, t in testcases:
             # Add tests to gluster_tests Test Class
             setattr(gluster_tests, "test_%s" % i, t)
 
@@ -65,4 +65,3 @@ if __name__ == '__main__':
     runner = unittest.TextTestRunner(verbosity=2)
     itersuite = unittest.TestLoader().loadTestsFromTestCase(gluster_tests)
     runner.run(itersuite)
-    util.finii()

@@ -1,5 +1,5 @@
 import time
-from libs.util import tc, testcase, create_volume, mount_volume, get_config_data
+from libs.util import tc, testcase, create_volume, mount_volume
 
 @testcase("gluster_basic_test")
 def gluster_basic_test():
@@ -8,6 +8,7 @@ def gluster_basic_test():
     if not ret:
         tc.logger.error("Unable to start glusterd. Please check the logs")
         return False
+    return True
     mnode = tc.nodes[0]
     conf_dict = get_config_data()
     volname = conf_dict['VOLNAME']
