@@ -2,14 +2,14 @@ DiSTAF - Di'stributed Systems Test Automation Framework
 ========================================================
 
 DiSTAF is a test automation framework for distributed systems. Although the
-framework is written with glusterfs in mind, this can used for test automation
+framework is written with glusterfs in mind, this can be used for test automation
 of many distributed systems. And this framework is written with portability in
 mind. It just needs ip addresses or resolvable hostnames of servers and clients.
 The servers and clients can be physical machines or vms or even linux conatiners.
 
 **About the name:**
 DiSTAF (or distaf) is short for Di'stributed Systems Test Automation Framework.
-Also distaff is a tool used in spinning which is designed to hold unspun fibres
+Also distaff is a tool used in spinning, which is designed to hold unspun fibres
 together keeping them untangled and thus easing the process of spinning. This
 frameowrk is trying to do just that, keeping the machines untangled and and easing
 the process of writing and executing the test cases. Hence the name DiSTAF (distaf)
@@ -74,7 +74,7 @@ TODO
 
 * Better test case selection logic
 * Better logging of test cases/results
-* Forcing the order of execution if testcases whenever required
+* Forcing the order of execution of testcases whenever required
 * Integrating with nose tests for Jenkins friendly reporting format
 * Logs monitoring in each servers
 * setup_fs to create the initial xfs/ext4 partition before running the tests
