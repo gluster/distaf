@@ -78,7 +78,6 @@ TODO
 * Integrating with nose tests for Jenkins friendly reporting format
 * Logs monitoring in each servers
 * setup_fs to create the initial xfs/ext4 partition before running the tests
-* Support to run command as non root user in test cluster
 
 Integration Work
 =================
