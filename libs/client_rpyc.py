@@ -67,15 +67,18 @@ class big_bang:
             Populates the connection in a dict called connection_handles.
             This function does not take care of timeouts. Timeouts need to
             be handled by the calling function
-            Returns None
+            Returns True on success and False otherwise
         """
         self.logger.debug("Connecting to node: %s" % node)
-        rem = SshMachine(node, user)
-        dep = DeployedServer(rem)
-        conn = dep.classic_connect()
-        self.connection_handles[node][user] = (rem, dep, conn)
-        self.subp_conn[node][user] = conn.modules.subprocess
-        return None
+        try:
+            rem = SshMachine(node, user)
+            dep = DeployedServer(rem)
+            conn = dep.classic_connect()
+            self.connection_handles[node][user] = (rem, dep, conn)
+            self.subp_conn[node][user] = conn.modules.subprocess
+        except:
+            return False
+        return True
 
     def refresh_connection(self, node, user='', timeout=210):
         if user == '':
@@ -217,9 +220,54 @@ class big_bang:
         rem.upload(localpath, remotepath)
         return None
 
+    def add_user(self, node, user, password='foobar'):
+        """
+            Add the user 'user' to the node 'node'
+            For this to work, connection to 'root' account of remote machine
+            should be already established.
+            This functions also takes care creating a passwordless ssh
+            connection from management node to remote node.
+            And then it connects to remote user and updates the
+            dict of connection_handles
+        """
+        if 'root' not in self.connection_handles[node]:
+            tc.logger.error("An ssh connection to 'root' of %s is not present" \
+                    % node)
+            return False
+        ret = self.run(node, \
+"useradd -m -p $(perl -e'print crypt(%s, \"salt\")') %s" % (password, user), \
+user='root')
+        if ret[0] != 0:
+            self.logger.error("Unable to add the user %s to the remote node %s"\
+                    % (user, node))
+            return False
+        conn = self.get_connection(node, 'root')
+        if conn == -1:
+            self.logger.error("Unable to get connection to 'root' of node %s" \
+                    % node)
+            return False
+        conn.modules.os.makedirs("/home/%s/.ssh" % user)
+        rfh = conn.builtin.open("/home/%s/.ssh/authorized_keys" % user, "a")
+        localhome = os.path.expanduser('~')
+        try:
+            with open("%s/.ssh/id_rsa.pub" % localhome, 'r') as f:
+                for line in f:
+                    rfh.write(line)
+        except:
+            self.logger.error("Unable to write the rsa pub file to %s@%s" \
+                    % (user, node))
+            return False
+        rfh.close()
+        conn.close()
+        ret = self.establish_connection(node, user)
+        if not ret:
+            tc.logger.critical("Unable to connect to %s@%s" % (user, node))
+            return False
+        return True
+
     def fini(self):
         for node in self.connection_handles.keys():
-            for user in node.keys():
+            for user in self.connection_handles[node].keys():
                 self.logger.debug("Closing all connection to %s@%s" \
                         % (user, node))
                 self.connection_handles[node][user][2].close()
