@@ -17,6 +17,7 @@ def get_config_data():
         'MOUNT_TYPE'      : 'glusterfs',
         'MOUNTPOINT'      : '/mnt/glusterfs',
         'LOG_LEVEL'       : 'DEBUG',
+        'REMOTE_USER'     : 'root',
         'GEO_USER'        : 'root',
         'FILE_TYPE'       : 'text',
         'DIR_STRUCT'      : 'multi',
