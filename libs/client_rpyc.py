@@ -1,13 +1,12 @@
 import os
 import time
 import logging
-from threading import Thread
 from plumbum import SshMachine
 from libs.config_parser import get_config_data
 from rpyc.utils.zerodeploy import DeployedServer
 
-class big_bang:
 
+class big_bang:
     def __init__(self):
         """
             Initialises the whole environment and establishes connection
@@ -29,10 +28,10 @@ class big_bang:
         self.number_gs_nodes = len(self.gs_nodes)
         self.number_gs_peers = len(self.gs_peers)
 
-        self.servers = self.nodes + self.peers + self.gm_nodes + self.gm_peers \
-                       + self.gs_nodes + self.gs_peers
-        self.all_nodes = self.nodes + self.peers + self.clients + self.gm_nodes\
-                         + self.gm_peers + self.gs_nodes + self.gs_peers
+        self.servers = self.nodes + self.peers + self.gm_nodes + \
+                self.gm_peers + self.gs_nodes + self.gs_peers
+        self.all_nodes = self.nodes + self.peers + self.clients + \
+                self.gm_nodes + self.gm_peers + self.gs_nodes + self.gs_peers
 
         client_logfile = self.config_data['LOG_FILE']
         loglevel = getattr(logging, self.config_data['LOG_LEVEL'].upper())
@@ -50,15 +49,16 @@ class big_bang:
 
         self.connection_handles = {}
         self.subp_conn = {}
-        processes = []
         for node in self.all_nodes:
             self.connection_handles[node] = {}
             self.subp_conn[node] = {}
-            p = Thread(target=self.establish_connection, args=(node, self.user))
-            p.start()
-            processes.append(p)
-        for p in processes:
-            p.join()
+            self.logger.debug("Connecting to node: %s" % node)
+            ret = self.establish_connection(node, self.user)
+            if not ret:
+                self.logger.warning("Unable to establish connection with: %s" \
+                        % node)
+            else:
+                self.logger.debug("Connected to node: %s" % node)
 
     def establish_connection(self, node, user):
         """
@@ -69,7 +69,6 @@ class big_bang:
             be handled by the calling function
             Returns True on success and False otherwise
         """
-        self.logger.debug("Connecting to node: %s" % node)
         try:
             rem = SshMachine(node, user)
             dep = DeployedServer(rem)
@@ -81,6 +80,13 @@ class big_bang:
         return True
 
     def refresh_connection(self, node, user='', timeout=210):
+        """
+            Refresh the connection to the user@node
+
+            This should be called either from test script, but internally
+            run/run_async will also call this if connection is found to be
+            disconnected. Any reboot will make the connection go bad.
+        """
         if user == '':
             user = self.user
         try:
@@ -94,7 +100,7 @@ class big_bang:
                 self.establish_connection(node, user)
                 break
             except:
-                self.logger.debug("Couldn't connect to %s. Retrying in 42 secs" \
+                self.logger.debug("Couldn't connect to %s. Retrying in 42 secs"\
                 % node)
                 time.sleep(42)
                 timeout = timeout - 42
@@ -115,8 +121,8 @@ class big_bang:
         if user == '':
             user = self.user
         self.logger.info("Executing %s on %s" % (cmd, node))
-        subp = self.subp_conn[node][user]
         try:
+            subp = self.subp_conn[node][user]
             p = subp.Popen(cmd, shell=True, stdout=subp.PIPE, stderr=subp.PIPE)
         except:
             ret = self.refresh_connection(node, user)
@@ -135,7 +141,7 @@ class big_bang:
         if perr != "" and verbose:
             self.logger.error("\"%s\" on %s: STDERR is \n %s" % \
                             (cmd, node, perr))
-        return ( ret, pout, perr )
+        return (ret, pout, perr)
 
     def run_async(self, node, cmd, user='', verbose=True):
         """
@@ -154,6 +160,7 @@ class big_bang:
         self.logger.info("Executing %s on %s asynchronously" % (cmd, node))
         p = c.modules.subprocess.Popen(cmd, shell=True, \
             stdout=c.modules.subprocess.PIPE, stderr=c.modules.subprocess.PIPE)
+
         def value():
             pout, perr = p.communicate()
             retc = p.returncode
@@ -167,6 +174,7 @@ class big_bang:
                 self.logger.error("\"%s\" on \"%s\": STDERR is \n %s" % \
                 (cmd, node, perr))
             return (retc, pout, perr)
+
         p.value = value
         p.close = lambda: c.close()
         return p
@@ -184,7 +192,7 @@ class big_bang:
             sdict[server] = self.run_async(server, command, user, verbose)
         for server in self.servers:
             sdict[server].wait()
-            ps, pout, perr = sdict[server].value()
+            ps, _, _ = sdict[server].value()
             out_dict[server] = ps
             if 0 != ps:
                 ret = False
@@ -231,7 +239,7 @@ class big_bang:
             dict of connection_handles
         """
         if 'root' not in self.connection_handles[node]:
-            tc.logger.error("An ssh connection to 'root' of %s is not present" \
+            self.logger.error("An ssh connection to 'root' of %s is not present" \
                     % node)
             return False
         ret = self.run(node, \
@@ -261,11 +269,14 @@ user='root')
         conn.close()
         ret = self.establish_connection(node, user)
         if not ret:
-            tc.logger.critical("Unable to connect to %s@%s" % (user, node))
+            self.logger.critical("Unable to connect to %s@%s" % (user, node))
             return False
         return True
 
     def fini(self):
+        """
+            Destroy all stored connections to user@remote-machine
+        """
         for node in self.connection_handles.keys():
             for user in self.connection_handles[node].keys():
                 self.logger.debug("Closing all connection to %s@%s" \
