@@ -1,13 +1,15 @@
 #!/usr/bin/python
 
 import os
+import re
 import sys
 import unittest
 import argparse
-from libs.util import testcases
+from libs.util import testcases, finii
 
 if os.getcwd() not in sys.path:
     sys.path.append(os.getcwd())
+
 
 def collect_all_tests(dir="tests_d"):
     """
@@ -25,11 +27,13 @@ def collect_all_tests(dir="tests_d"):
                 # added to ts list
                 m = __import__(iname.replace("/", "."))
 
+
 class gluster_tests(unittest.TestCase):
     """
         Empty class. But will be populated with test cases during runtime
     """
     pass
+
 
 def set_tests(tests=[]):
     """
@@ -38,15 +42,19 @@ def set_tests(tests=[]):
         unittest to recognise them as test case
     """
     if tests != []:
+        i = 0
         for test in tests:
-            for i, t in testcases:
-                if i == test:
+            for name, t in testcases:
+                if name == test:
                     # Add the tests to gluster_tests Test Class
-                    setattr(gluster_tests, "test_%s" %i, t)
+                    setattr(gluster_tests, "test_%d_%s" % (i, name), t)
+                    i = i + 1
     else:
-        for i, t in testcases:
+        i = 0
+        for name, t in testcases:
             # Add tests to gluster_tests Test Class
-            setattr(gluster_tests, "test_%s" % i, t)
+            setattr(gluster_tests, "test_%d_%s" % (i, name), t)
+            i = i + 1
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -62,6 +70,10 @@ if __name__ == '__main__':
     else:
         collect_all_tests()
         set_tests()
+    get_num = lambda x: int(re.search(r'test_([0-9]+)_', x).group(1))
+    sortcmp = lambda _, x, y: cmp(get_num(x), get_num(y))
+    unittest.TestLoader.sortTestMethodsUsing = sortcmp
     runner = unittest.TextTestRunner(verbosity=2)
     itersuite = unittest.TestLoader().loadTestsFromTestCase(gluster_tests)
     runner.run(itersuite)
+    finii()
