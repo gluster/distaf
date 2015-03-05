@@ -15,7 +15,7 @@ def testcase(name):
     return decorator
 
 
-def create_volume(volname, dist, rep=1, stripe=1, trans='tcp', servers=[], snap=True):
+def create_volume(volname, dist, rep=1, stripe=1, trans='tcp', servers=[], snap=False):
     """
         Create the gluster volume specified configuration
         volname and distribute count are mandatory argument
@@ -217,3 +217,6 @@ def single_element_to_list_converter(input):
     if not isinstance(input, list):
         input = [input]
     return input
+
+def finii():
+    tc.fini()
