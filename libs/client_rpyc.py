@@ -52,13 +52,13 @@ class big_bang:
         for node in self.all_nodes:
             self.connection_handles[node] = {}
             self.subp_conn[node] = {}
-            self.logger.debug("Connecting to node: %s" % node)
+            self.logger.debug("Connecting to: %s@%s" % (self.user, node))
             ret = self.establish_connection(node, self.user)
             if not ret:
-                self.logger.warning("Unable to establish connection with: %s" \
-                        % node)
+                self.logger.warning("Unable to establish connection to: %s@%s" \
+                        % (self.user, node))
             else:
-                self.logger.debug("Connected to node: %s" % node)
+                self.logger.debug("Connected to: %s@%s" % (self.user, node))
 
     def establish_connection(self, node, user):
         """
