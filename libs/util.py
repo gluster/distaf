@@ -15,7 +15,7 @@ def testcase(name):
     return decorator
 
 
-def create_volume(volname, dist, rep=1, stripe=1, trans='tcp', servers=[], snap=False):
+def create_volume(volname, dist, rep=1, stripe=1, disp=1, dispd=1, red=1, trans='tcp', servers=[], snap=True):
     """
         Create the gluster volume specified configuration
         volname and distribute count are mandatory argument
@@ -26,8 +26,21 @@ def create_volume(volname, dist, rep=1, stripe=1, trans='tcp', servers=[], snap=
     dist = int(dist)
     rep = int(rep)
     stripe = int(stripe)
-    number_of_bricks = dist * rep * stripe
-    replica = stripec = ''
+    disp = int(disp)
+    dispd = int(dispd)
+    red = int(red)
+    dispc = 1
+
+    if disp != 1 and dispd != 1:
+        tc.logger.error("volume create can't have both disperse and disperse-data option")
+        return (-1, None, None)
+    if disp != 1:
+        dispc = int(disp)
+    elif dispd != 1:
+        dispc = int(dispd) + int(red)
+
+    number_of_bricks = dist * rep * stripe * dispc
+    replica = stripec = disperse = disperse_data = redundancy = ''
     brick_root = '/bricks'
     n = 0
     tempn = 0
@@ -47,14 +60,24 @@ def create_volume(volname, dist, rep=1, stripe=1, trans='tcp', servers=[], snap=
         else:
             n = 0
             tempn = tempn + 1
+
     if rep != 1:
         replica = "replica %d" % rep
     if stripe != 1:
         stripec = "stripe %d" % stripe
     ttype = "transport %s" % trans
-    ret = tc.run(servers[0], "gluster volume create %s %s %s %s %s" % \
-                (volname, replica, stripec, ttype, bricks_list))
+    if disp != 1:
+        disperse = "disperse %d" % disp
+        redundancy = "redundancy %d" % red
+    elif dispd != 1:
+        disperse_data = "disperse-data %d" % dispd
+        redundancy = "redundancy %d" % red
+
+    ret = tc.run(servers[0], "gluster volume create %s %s %s %s %s %s %s %s \
+--mode=script" % (volname, replica, stripec, disperse, disperse_data,\
+redundancy, ttype, bricks_list))
     return ret
+
 
 def add_brick(volname, nbricks, replica=1, stripe=1, peers=[], mnode=''):
     """
