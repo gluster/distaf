@@ -1,6 +1,6 @@
 import re
 from libs.client_rpyc import big_bang
-testcases = []
+testcases = {}
 tc = big_bang()
 
 
@@ -10,7 +10,7 @@ def testcase(name):
             ret = func()
             self.assertTrue(ret, "Testcase %s failed" % name)
             return ret
-        testcases.append((name, wrapper))
+        testcases[name] = wrapper
         return wrapper
     return decorator
 

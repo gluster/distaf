@@ -41,20 +41,19 @@ def set_tests(tests=[]):
         Name of the tests will be prepended with test_ to enable
         unittest to recognise them as test case
     """
-    if tests != []:
-        i = 0
-        for test in tests:
-            for name, t in testcases:
-                if name == test:
-                    # Add the tests to gluster_tests Test Class
-                    setattr(gluster_tests, "test_%d_%s" % (i, name), t)
-                    i = i + 1
+    if tests == []:
+        tests = testcases.keys()
     else:
-        i = 0
-        for name, t in testcases:
-            # Add tests to gluster_tests Test Class
-            setattr(gluster_tests, "test_%d_%s" % (i, name), t)
+        for name in testcases.keys():
+            if name not in tests:
+                del testcases[name]
+    i = 0
+    for test in tests:
+        try:
+            setattr(gluster_tests, "test_%d_%s" % (i, test), testcases[test])
             i = i + 1
+        except KeyError:
+            sys.stderr.write("Unable to find test %s. Skipping it...\n" % test)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

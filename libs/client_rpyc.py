@@ -52,13 +52,13 @@ class big_bang:
         for node in self.all_nodes:
             self.connection_handles[node] = {}
             self.subp_conn[node] = {}
-            self.logger.debug("Connecting to: %s@%s" % (self.user, node))
+            self.logger.debug("Connecting to %s@%s" % (self.user, node))
             ret = self.establish_connection(node, self.user)
             if not ret:
-                self.logger.warning("Unable to establish connection to: %s@%s" \
+                self.logger.warning("Unable to establish connection to %s@%s" \
                         % (self.user, node))
             else:
-                self.logger.debug("Connected to: %s@%s" % (self.user, node))
+                self.logger.debug("Connected to %s@%s" % (self.user, node))
 
     def establish_connection(self, node, user):
         """
@@ -228,7 +228,25 @@ class big_bang:
         rem.upload(localpath, remotepath)
         return None
 
-    def add_user(self, node, user, password='foobar'):
+    def add_group(self, node, group):
+        """
+            Adds a group in the remote node
+
+            Returns True on success and False on failure
+        """
+        if 'root' not in self.connection_handles[node]:
+            self.logger.error("An ssh connection to 'root' of %s is not present" \
+                    % node)
+            return False
+        ret = self.run(node, "groupadd %s" % group)
+        if ret[0] != 0:
+            self.logger.error("Unable to add group %s to %s" % (group, node))
+            return False
+        else:
+            self.logger.debug("group %s added to %s" % (groupi, node))
+            return True
+
+    def add_user(self, node, user, password='foobar', group=''):
         """
             Add the user 'user' to the node 'node'
             For this to work, connection to 'root' account of remote machine
@@ -242,9 +260,15 @@ class big_bang:
             self.logger.error("An ssh connection to 'root' of %s is not present" \
                     % node)
             return False
+        grp_add_cmd = ''
+        if group != '':
+            ret = self.add_group(node, group)
+            if not ret:
+                return False
+            grp_add_cmd = "-G %s" % group
         ret = self.run(node, \
-"useradd -m -p $(perl -e'print crypt(%s, \"salt\")') %s" % (password, user), \
-user='root')
+"useradd -m %s -p $(perl -e'print crypt(%s, \"salt\")') %s" % \
+(grp_add_cmd, password, user), user='root')
         if ret[0] != 0:
             self.logger.error("Unable to add the user %s to the remote node %s"\
                     % (user, node))
