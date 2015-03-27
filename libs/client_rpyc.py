@@ -27,6 +27,7 @@ class big_bang:
         self.number_gm_peers = len(self.gm_peers)
         self.number_gs_nodes = len(self.gs_nodes)
         self.number_gs_peers = len(self.gs_peers)
+        self.global_flag = {}
 
         self.servers = self.nodes + self.peers + self.gm_nodes + \
                 self.gm_peers + self.gs_nodes + self.gs_peers
@@ -52,13 +53,13 @@ class big_bang:
         for node in self.all_nodes:
             self.connection_handles[node] = {}
             self.subp_conn[node] = {}
-            self.logger.debug("Connecting to %s@%s" % (self.user, node))
+            self.logger.debug("Connecting to node: %s" % node)
             ret = self.establish_connection(node, self.user)
             if not ret:
-                self.logger.warning("Unable to establish connection to %s@%s" \
-                        % (self.user, node))
+                self.logger.warning("Unable to establish connection with: %s" \
+                        % node)
             else:
-                self.logger.debug("Connected to %s@%s" % (self.user, node))
+                self.logger.debug("Connected to node: %s" % node)
 
     def establish_connection(self, node, user):
         """
@@ -179,18 +180,20 @@ class big_bang:
         p.close = lambda: c.close()
         return p
 
-    def run_servers(self, command, user='', verbose=True):
+    def run_servers(self, command, user='', servers='', verbose=True):
         """
             Run the specified command in each of the server in parallel
         """
         if user == '':
             user = self.user
+        if servers == '':
+            servers = self.servers
         sdict = {}
         out_dict = {}
         ret = True
-        for server in self.servers:
+        for server in servers:
             sdict[server] = self.run_async(server, command, user, verbose)
-        for server in self.servers:
+        for server in servers:
             sdict[server].wait()
             ps, _, _ = sdict[server].value()
             out_dict[server] = ps
@@ -213,6 +216,7 @@ class big_bang:
             if not ret:
                 self.logger.critical("Couldn't connect to %s" % node)
                 return -1
+            conn = self.connection_handles[node][user][1].classic_connect()
         return conn
 
     def upload(self, node, localpath, remotepath, user=''):
@@ -243,7 +247,7 @@ class big_bang:
             self.logger.error("Unable to add group %s to %s" % (group, node))
             return False
         else:
-            self.logger.debug("group %s added to %s" % (groupi, node))
+            self.logger.debug("group %s added to %s" % (group, node))
             return True
 
     def add_user(self, node, user, password='foobar', group=''):
@@ -285,6 +289,10 @@ class big_bang:
             with open("%s/.ssh/id_rsa.pub" % localhome, 'r') as f:
                 for line in f:
                     rfh.write(line)
+            ruid = conn.modules.pwd.getpwnam(user).pw_uid
+            rgid = conn.modules.grp.getgrnam(group).gr_gid
+            conn.modules.os.chown("/home/%s/.ssh/authorized_keys" % \
+                    user, ruid, rgid)
         except:
             self.logger.error("Unable to write the rsa pub file to %s@%s" \
                     % (user, node))
