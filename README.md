@@ -32,10 +32,11 @@ And python unittest is used for running tests and generating the results results
 How to Setup
 ================
 1. Clone this git repo and cd in to it i.e. `cd distaf` on the *Management Node*.
-2. Populate the config.sh with your environment details. And then source the config.sh
+2. Populate the config.sh with your environment details. And then source the config.sh  
    `. config.sh`
-2. Establish a passwordless ssh between *Management Node* to all *test machines*.
-   `./libs/create_passwdless_ssh.sh`.
+2. Establish a passwordless ssh between *Management Node* to all *test machines*.  
+   `./libs/create_passwdless_ssh.sh`.  
+    This will ask for the password of all your test machines.
 
 How to run
 =============
@@ -51,7 +52,7 @@ How to run
 
  - To run all tests in a directory: `python main.py -d snapshot`  
 
- - To run specific tests in a specific directory `python main.py -d snapshot -t "snaptest0 snaptest1"`
+ - To run specific tests in a specific directory: `python main.py -d snapshot -t "snaptest0 snaptest1"`
 ####Note:
      * Automation test logs are at /var/log/tests/ by default in management node. This can be changed by exporting LOG_FILE="/new/path/"
 
