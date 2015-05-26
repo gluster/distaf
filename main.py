@@ -55,12 +55,18 @@ def set_tests(tests=[]):
         except KeyError:
             sys.stderr.write("Unable to find test %s. Skipping it...\n" % test)
 
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("-t", help="Test case(s) to run")
     parser.add_argument("-d", help="Directory to choose tests from")
     args = parser.parse_args()
-    if args.t != None:
+
+    if args.d != None and args.t != None:
+        collect_all_tests("tests_d/%s" % args.d)
+        set_tests(args.t.split(' '))
+    elif args.t != None:
         collect_all_tests()
         set_tests(args.t.split(' '))
     elif args.d != None:
@@ -69,6 +75,7 @@ if __name__ == '__main__':
     else:
         collect_all_tests()
         set_tests()
+
     get_num = lambda x: int(re.search(r'test_([0-9]+)_', x).group(1))
     sortcmp = lambda _, x, y: cmp(get_num(x), get_num(y))
     unittest.TestLoader.sortTestMethodsUsing = sortcmp
