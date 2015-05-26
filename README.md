@@ -32,10 +32,10 @@ And python unittest is used for running tests and generating the results results
 How to Setup
 ================
 1. Clone this git repo and cd in to it i.e. `cd distaf` on the *Management Node*.
+2. Populate the config.sh with your environment details. And then source the config.sh
+   `. config.sh`
 2. Establish a passwordless ssh between *Management Node* to all *test machines*.
-   * Run `ssh-keygen -t rsa` to generate the RSA keys
-   * Run `ssh-copy-id <username>@test-machine0` to upload the RSA public key to test-machine0
-   * Using above step upload public key to all *test machines*
+   `./libs/create_passwdless_ssh.sh`.
 
 How to run
 =============
@@ -50,12 +50,11 @@ How to run
  - To run multiple test cases: `python main.py -t "basic_test0 basic_test1"`
 
  - To run all tests in a directory: `python main.py -d snapshot`  
-####Note:
-     1. Automation test logs are at /var/log/tests/ both at management and test nodes.
 
-     2. If you want run the automation as non root user, follow the steps below.
-          * create the directory as root `mkdir /var/log/tests`  
-          * Add the user as the owner for the directory i.e. `chown -R <user> /var/log/tests`  
+ - To run specific tests in a specific directory `python main.py -d snapshot -t "snaptest0 snaptest1"`
+####Note:
+     * Automation test logs are at /var/log/tests/ by default in management node. This can be changed by exporting LOG_FILE="/new/path/"
+
 
 How to write tests
 ====================
@@ -74,9 +73,8 @@ TODO
 
 * Better test case selection logic
 * Better logging of test cases/results
-* Forcing the order of execution of testcases whenever required
 * Integrating with nose tests for Jenkins friendly reporting format
-* Logs monitoring in each servers
+* Glusterfs health monitoring in each servers
 * setup_fs to create the initial xfs/ext4 partition before running the tests
 
 Integration Work
