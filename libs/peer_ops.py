@@ -19,10 +19,11 @@ def peer_probe(pnode='', servers='', timeout=10):
     if servers == '':
         servers = tc.nodes[1:]
 
-    for node in servers:
-        ret = tc.run(pnode, "gluster peer probe %s" % node)
-        if ret[0] != 0 or re.search(r'^peer\sprobe\:\ssuccess(.*)', ret[1]) is None:
-            tc.logger.error("Failed to do peer probe for node %s" % node)
+    for server in servers:
+        ret = tc.run(pnode, "gluster peer probe %s" % server)
+        if ret[0] != 0 or re.search(r'^peer\sprobe\:\ssuccess(.*)', ret[1]) \
+                is None:
+            tc.logger.error("Failed to do peer probe for node %s" % server)
             return False
 
     time.sleep(timeout)
@@ -44,14 +45,15 @@ def peer_detach(pnode='', servers='', force=False, timeout=10):
     if servers == '':
         servers = tc.nodes[1:]
 
-    for node in servers:
+    for server in servers:
         if force:
-            cmd = "gluster peer detach %s force" % node
+            cmd = "gluster peer detach %s force" % server
         else:
-            cmd = "gluster peer detach %s" % node
+            cmd = "gluster peer detach %s" % server
         ret = tc.run(pnode, cmd)
-        if ret[0] != 0 or re.search(r'^peer\sdetach\:\ssuccess(.*)', ret[1]) is None:
-            tc.logger.error("Failed to do peer detach for node %s" % node)
+        if ret[0] != 0 or re.search(r'^peer\sdetach\:\ssuccess(.*)', ret[1]) \
+                is None:
+            tc.logger.error("Failed to do peer detach for node %s" % server)
             return False
 
     time.sleep(timeout)
@@ -65,14 +67,15 @@ def peer_detach(pnode='', servers='', force=False, timeout=10):
 def peer_status(pnode=''):
     """
         Does peer status on the given node
-        Returns: On success, peer status information in list of dictionary format
-                 On Failure, None
+        Returns: On success, peer status information in list of dicts
+                 On failure, None
     """
     if pnode == '':
         pnode = tc.nodes[0]
     ret = tc.run(pnode, "gluster peer status")
     if ret[0] != 0:
-        tc.logger.error("Failed to execute peer status command in node %s" % pnode)
+        tc.logger.error("Failed to execute peer status command in node %s" \
+                % pnode)
         return None
 
     status_list = ret[1].split('\n\n')[1:]
@@ -104,12 +107,15 @@ def validate_peer_status(pnode='', servers=''):
 
     for stat in status:
         if stat['Hostname'] in servers:
-            if re.match(r'([0-9a-f]{8})(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}', stat['Uuid'], re.I) is None or \
-                        stat['State'] != "Peer in Cluster (Connected)":
-                tc.logger.error("peer probe unsuccessful for node %s" % stat['Hostname'])
+            if re.match(r'([0-9a-f]{8})(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}', \
+                    stat['Uuid'], re.I) is None or \
+                    stat['State'] != "Peer in Cluster (Connected)":
+                tc.logger.error("peer probe unsuccessful for node %s" % \
+                        stat['Hostname'])
                 check_flag = True
 
-    if check_flag or not len(set(servers).intersection([stat_key['Hostname'] for stat_key in status])):
+    if check_flag or not len(set(servers).intersection([stat_key['Hostname'] \
+            for stat_key in status])):
         return False
 
     return True
