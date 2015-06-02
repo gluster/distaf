@@ -244,6 +244,10 @@ def setup_vol(volname='', dist='', rep='', dispd='', red='', stripe='', trans=''
         tc.logger.error("Unable to create volume %s" % volname)
         return False
     time.sleep(2)
+    ret = start_volume(volname, servers[0])
+    if not ret:
+        tc.logger.error("volume start %s failed" % volname)
+        return False
     if tc.config_data['ENABLE_QUOTA'] == 'True':
         ret0 = enable_quota(volname, servers[0])
         ret1 = set_quota_limit(volname, server=servers[0])
@@ -255,10 +259,6 @@ def setup_vol(volname='', dist='', rep='', dispd='', red='', stripe='', trans=''
         if not ret:
             tc.logger.error("Unable to enable USS for volume %s" % volname)
             return False
-    ret = start_volume(volname, servers[0])
-    if not ret:
-        tc.logger.error("volume start %s failed" % volname)
-        return False
     tc.global_flag[volname] = True
     return True
 
