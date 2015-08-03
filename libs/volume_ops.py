@@ -137,6 +137,21 @@ def delete_volume(volname, mnode=''):
 
     return True
 
+def reset_volume(volname, mnode='', force=False):
+    """
+        Reset the gluster volume
+        Returns True if success and False if failure
+    """
+    if mnode == '':
+        mnode = tc.nodes[0]
+    frce = ''
+    if force:
+        frce = 'force'
+    ret = tc.run(mnode, "gluster volume reset %s %s --mode=script" \
+            % (volname, frce))
+    if ret[0] != 0:
+        return False
+    return True
 
 def setup_meta_vol(servers=''):
     """
@@ -290,11 +305,11 @@ def parse_xml(tag_obj):
             node_dict[tag.tag] = tag.text
     return node_dict
 
-def get_volume_status(server='', volname='all', service='', options=''):
+def get_volume_status(volname='all', service='', options='', mnode=''):
     """
     This module gets the status of all or specified volume(s)/brick
     @parameter:
-        * server  - <str> (optional) name of the server to execute the volume
+        * mnode  - <str> (optional) name of the node to execute the volume
                     status command. If not given, the function takes the
                     first node from config file
         * volname - <str> (optional) name of the volume to get status. It not
@@ -309,12 +324,12 @@ def get_volume_status(server='', volname='all', service='', options=''):
               None, on failure
     """
 
-    if server == '':
-        server = tc.nodes[0]
+    if mnode == '':
+        mnode = tc.nodes[0]
 
     cmd = "gluster vol status %s %s %s --xml" % (volname, service, options)
 
-    ret = tc.run(server, cmd)
+    ret = tc.run(mnode, cmd)
     if ret[0] != 0:
         tc.logger.error("Failed to execute gluster volume status command")
         return None
