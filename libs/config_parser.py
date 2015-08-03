@@ -22,6 +22,8 @@ def get_config_data():
         'MOUNTPOINT'      : '/mnt/glusterfs',
         'REMOTE_USER'     : 'root',
         'MOUNTBROKER'     : 'False',
+        'ENABLE_USS'      : 'False',
+        'ENABLE_QUOTA'    : 'False',
         'GEO_USER'        : 'root',
         'GEO_GROUP'       : 'geogroup',
         'GEO_SYNC_MODE'   : 'rsync',

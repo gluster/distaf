@@ -11,7 +11,6 @@ try:
 except ImportError:
     import xml.etree.ElementTree as etree
 from libs.quota_ops import enable_quota, set_quota_limit
-from tests_d.uss.uss_libs import set_uss
 from libs.gluster_init import env_setup_servers, start_glusterd
 
 """
@@ -229,13 +228,11 @@ def setup_vol(volname='', dist='', rep='', dispd='', red='', stripe='', trans=''
         trans = tc.config_data['TRANS_TYPE']
     if servers == '':
         servers = tc.nodes
-    try:
-        if tc.global_flag[volname] == True:
-            tc.logger.debug("The volume %s is already created. Returning..." \
-                    % volname)
-            return True
-    except KeyError:
-        tc.logger.info("The volume %s is not present. Creating it" % volname)
+    volinfo = get_volume_info(server=servers[0])
+    if volinfo is not None and volname in volinfo.keys():
+        tc.logger.debug("volume %s already exists in %s. Returning..." \
+                % (volname, servers[0]))
+        return True
     ret = env_setup_servers(servers=servers)
     if not ret:
         tc.logger.error("Formatting backend bricks failed. Aborting...")
@@ -270,8 +267,9 @@ def setup_vol(volname='', dist='', rep='', dispd='', red='', stripe='', trans=''
             tc.logger.error("Quota setup failed")
             return False
     if tc.config_data['ENABLE_USS'] == 'True':
-        ret = set_uss(volname, 'enable', servers[0])
-        if not ret:
+        ret = tc.run(servers[0], "gluster volume set %s features.uss enable" \
+                % volname)
+        if ret[0] != 0:
             tc.logger.error("Unable to enable USS for volume %s" % volname)
             return False
     tc.global_flag[volname] = True
