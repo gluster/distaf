@@ -10,7 +10,7 @@ def gluster_basic_test():
     mountpoint = tc.config_data['MOUNTPOINT']
     mnode = tc.nodes[0]
     client = tc.clients[0]
-    rc = True
+    _rc = True
     ret = setup_vol()
     if not ret:
         tc.logger.error("Unable to setup the volume %s" % volname)
@@ -19,17 +19,17 @@ def gluster_basic_test():
     ret, _, _ = mount_volume(volname, mount_type, mountpoint, mclient=client)
     if ret != 0:
         tc.logger.error("mounting volume %s failed" % volname)
-        rc = False
+        _rc = False
     else:
         ret, _, _ = tc.run(client, "cp -r /etc %s" % mountpoint)
         if ret != 0:
             tc.logger.error("cp failed on the mountpoint")
-            rc = False
+            _rc = False
     umount_volume(client, mountpoint)
     ret = stop_volume(volname)
     if not ret:
-        rc = False
+        _rc = False
     ret = delete_volume(volname)
     if not ret:
-        rc = False
-    return rc
+        _rc = False
+    return _rc
