@@ -4,7 +4,7 @@
 Description: Library for file operations.
 """
 
-from libs.util import tc
+from distaf.util import tc
 import re
 import socket
 

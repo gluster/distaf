@@ -4,7 +4,7 @@
 Description: Library for gluster peer operations.
 """
 
-from libs.util import tc
+from distaf.util import tc
 import re
 import time
 

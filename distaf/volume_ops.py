@@ -2,16 +2,16 @@
 
 import re
 import time
-from libs.util import tc
+from distaf.util import tc
 from pprint import pformat
-from libs.peer_ops import peer_probe
-from libs.mount_ops import mount_volume
+from distaf.peer_ops import peer_probe
+from distaf.mount_ops import mount_volume
 try:
     import xml.etree.cElementTree as etree
 except ImportError:
     import xml.etree.ElementTree as etree
-from libs.quota_ops import enable_quota, set_quota_limit
-from libs.gluster_init import env_setup_servers, start_glusterd
+from distaf.quota_ops import enable_quota, set_quota_limit
+from distaf.gluster_init import env_setup_servers, start_glusterd
 
 """
     This file contains the gluster volume operations like create volume,

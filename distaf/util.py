@@ -1,4 +1,4 @@
-from libs.client_rpyc import big_bang
+from distaf.client_rpyc import big_bang
 testcases = {}
 tc = big_bang()
 

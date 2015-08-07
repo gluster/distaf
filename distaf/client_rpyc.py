@@ -2,7 +2,7 @@ import os
 import time
 import logging
 from plumbum import SshMachine
-from libs.config_parser import get_config_data
+from distaf.config_parser import get_config_data
 from rpyc.utils.zerodeploy import DeployedServer
 
 

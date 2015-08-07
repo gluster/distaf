@@ -1,4 +1,4 @@
-from libs.util import tc
+from distaf.util import tc
 
 
 def mount_volume(volname, mtype='glusterfs', mpoint='/mnt/glusterfs', \

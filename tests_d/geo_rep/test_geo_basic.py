@@ -1,4 +1,4 @@
-from libs.util import testcase, tc
+from distaf.util import testcase, tc
 from tests_d.geo_rep.geo_rep_libs import geo_rep_basic_test
 
 @testcase("changelog-test-create")

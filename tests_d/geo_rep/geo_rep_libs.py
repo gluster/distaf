@@ -1,11 +1,11 @@
 import os
 import re
 import time
-from libs.util import tc
-from libs.peer_ops import peer_probe
-from libs.volume_ops import create_volume
-from libs.mount_ops import mount_volume, umount_volume
-from libs.gluster_init import start_glusterd, stop_glusterd, env_setup_servers
+from distaf.util import tc
+from distaf.peer_ops import peer_probe
+from distaf.volume_ops import create_volume
+from distaf.mount_ops import mount_volume, umount_volume
+from distaf.gluster_init import start_glusterd, stop_glusterd, env_setup_servers
 
 
 def set_sync_mode(mvol, svol, mode, mnode='', snode=''):
