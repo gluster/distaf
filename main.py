@@ -56,7 +56,6 @@ def set_tests(tests=[]):
             sys.stderr.write("Unable to find test %s. Skipping it...\n" % test)
 
 
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("-t", help="Test case(s) to run")
