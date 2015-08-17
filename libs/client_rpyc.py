@@ -41,7 +41,8 @@ class big_bang:
             os.makedirs(client_logdir)
         self.logger = logging.getLogger('client_rpyc')
         self.lhndlr = logging.FileHandler(client_logfile)
-        formatter = logging.Formatter('%(asctime)s %(levelname)s %(funcName)s %(message)s')
+        formatter = logging.Formatter('%(asctime)s %(levelname)s %(funcName)s'
+                                     '%(message)s')
         self.lhndlr.setFormatter(formatter)
         self.logger.addHandler(self.lhndlr)
         self.logger.setLevel(loglevel)
@@ -101,8 +102,8 @@ class big_bang:
                 self.establish_connection(node, user)
                 break
             except:
-                self.logger.debug("Couldn't connect to %s. Retrying in 42 secs"\
-                % node)
+                self.logger.debug("Couldn't connect to %s. Retrying again in "
+                                 "42 seconds" % node)
                 time.sleep(42)
                 timeout = timeout - 42
         if timeout < 0:
@@ -128,8 +129,8 @@ class big_bang:
         except:
             ret = self.refresh_connection(node, user)
             if not ret:
-                self.logger.critical("Connection to %s couldn't be established"\
-                % node)
+                self.logger.critical("Couldn't establish connection to %s" % \
+                        node)
                 return (-1, -1, -1)
             subp = self.subp_conn[node][user]
             p = subp.Popen(cmd, shell=True, stdout=subp.PIPE, stderr=subp.PIPE)
@@ -239,7 +240,7 @@ class big_bang:
             Returns True on success and False on failure
         """
         if 'root' not in self.connection_handles[node]:
-            self.logger.error("An ssh connection to 'root' of %s is not present" \
+            self.logger.error("An ssh connection to root@%s is not present" \
                     % node)
             return False
         ret = self.run(node, "groupadd %s" % group)
@@ -261,7 +262,7 @@ class big_bang:
             dict of connection_handles
         """
         if 'root' not in self.connection_handles[node]:
-            self.logger.error("An ssh connection to 'root' of %s is not present" \
+            self.logger.error("An ssh connection to root@%s is not present" \
                     % node)
             return False
         grp_add_cmd = ''
@@ -274,7 +275,7 @@ class big_bang:
 "useradd -m %s -p $(perl -e'print crypt(%s, \"salt\")') %s" % \
 (grp_add_cmd, password, user), user='root')
         if ret[0] != 0:
-            self.logger.error("Unable to add the user %s to the remote node %s"\
+            self.logger.error("Unable to add user %s to the remote node %s" \
                     % (user, node))
             return False
         conn = self.get_connection(node, 'root')
