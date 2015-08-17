@@ -18,6 +18,7 @@ from libs.gluster_init import env_setup_servers, start_glusterd
     start/stop volume
 """
 
+
 def create_volume(volname, dist, rep=1, stripe=1, trans='tcp', servers='', \
         snap=True, disp=1, dispd=1, red=1):
     """
@@ -81,6 +82,7 @@ def create_volume(volname, dist, rep=1, stripe=1, trans='tcp', servers='', \
 redundancy, ttype, bricks_list))
     return ret
 
+
 def start_volume(volname, mnode='', force=False):
     """
         Starts the gluster volume
@@ -136,6 +138,7 @@ def delete_volume(volname, mnode=''):
 
     return True
 
+
 def reset_volume(volname, mnode='', force=False):
     """
         Reset the gluster volume
@@ -151,6 +154,7 @@ def reset_volume(volname, mnode='', force=False):
     if ret[0] != 0:
         return False
     return True
+
 
 def setup_meta_vol(servers=''):
     """
@@ -192,13 +196,13 @@ def setup_meta_vol(servers=''):
         ret = mount_volume(meta_volname, 'glusterfs', mount_point, server, \
                 server)
         if ret[0] != 0:
-            tc.logger.error("Unable to mount meta volume on %s"% server)
+            tc.logger.error("Unable to mount meta volume on %s" % server)
             return False
     return True
 
 
-def setup_vol(volname='', dist='', rep='', dispd='', red='', stripe='', trans='', \
-        servers=''):
+def setup_vol(volname='', dist='', rep='', dispd='', red='', stripe='', \
+        trans='', servers=''):
     """
         Setup a gluster volume for testing.
         It first formats the back-end bricks and then creates a
@@ -288,6 +292,7 @@ def _parse_volume_status_xml(root_xml):
         if root_vol is not None:
             return root_vol
 
+
 def parse_xml(tag_obj):
     """
     This module takes any xml element object and parses all the child nodes
@@ -302,6 +307,7 @@ def parse_xml(tag_obj):
         else:
             node_dict[tag.tag] = tag.text
     return node_dict
+
 
 def get_volume_status(volname='all', service='', options='', mnode=''):
     """
@@ -391,6 +397,7 @@ def get_volume_status(volname='all', service='', options='', mnode=''):
     tc.logger.debug("Volume status output: %s" \
                     % pformat(vol_status, indent=10))
     return vol_status
+
 
 def get_volume_option(volname, option='all', server=''):
     """
