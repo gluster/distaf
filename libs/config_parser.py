@@ -1,5 +1,6 @@
 import os
 
+
 def get_config_data():
     """
         Gets all the config data from the environmental variables
