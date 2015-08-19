@@ -46,6 +46,7 @@ def snap_delete_all(volname, server=''):
 gluster snapshot delete $i --mode=script || ret=1; done ; exit $ret' % volname
     return tc.run(server, cmd)
 
+
 def snap_restore(volname, snapname, server=''):
     """
         stops the volume restore the snapshot and starts the volume

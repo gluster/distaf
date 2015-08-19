@@ -6,6 +6,7 @@ from libs.util import tc
     add-brick, bring_down_brick replace/remove brick
 """
 
+
 def add_brick(volname, nbricks, replica=1, stripe=1, peers='', mnode=''):
     """
         Does the gluster add-brick. If peer is '', peers from the config
@@ -57,8 +58,9 @@ def bring_down_brick(volname, bindex, node=''):
     global tc
     if node == '':
         node = tc.nodes[0]
-    ret, rnode, _ = tc.run(node, "gluster volume info %s | egrep \"^Brick%d:\" \
-| awk '{print $2}' | awk -F : '{print $1}'" % (volname, bindex))
+    ret, rnode, _ = tc.run(node, "gluster volume info %s | egrep \"^Brick%d:\""
+                                 " | awk '{print $2}' | awk -F : '{print $1}'"
+                                 % (volname, bindex))
     if ret != 0:
         return False
     ret, _, _ = tc.run(rnode.rstrip(), \

@@ -8,6 +8,7 @@ from libs.util import tc
 import re
 import time
 
+
 def peer_probe(pnode='', servers='', timeout=10):
     """
         Does peer probe and validates the same
@@ -33,6 +34,7 @@ def peer_probe(pnode='', servers='', timeout=10):
         return False
 
     return True
+
 
 def peer_detach(pnode='', servers='', force=False, timeout=10):
     """
@@ -64,6 +66,7 @@ def peer_detach(pnode='', servers='', force=False, timeout=10):
 
     return True
 
+
 def peer_status(pnode=''):
     """
         Does peer status on the given node
@@ -88,6 +91,7 @@ def peer_status(pnode=''):
             temp_dict[elmt[0].strip()] = elmt[1].strip()
         peer_list.append(temp_dict)
     return peer_list
+
 
 def validate_peer_status(pnode='', servers=''):
     """
@@ -119,6 +123,7 @@ def validate_peer_status(pnode='', servers=''):
         return False
 
     return True
+
 
 def pool_list(pnode=''):
     """

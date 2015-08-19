@@ -8,7 +8,9 @@ from libs.util import tc
 import re
 import socket
 
-def write_file(filename, file_contents=" ", create_mode='', filesize='', server=''):
+
+def write_file(filename, file_contents=" ", create_mode='', filesize='', \
+        server=''):
     """
     This module writes the file along with file contents
     @paramater:
@@ -32,15 +34,16 @@ def write_file(filename, file_contents=" ", create_mode='', filesize='', server=
         try:
             conn = tc.get_connection(server, 'root')
             if conn == -1:
-                tc.logger.error("Unable to get connection to 'root' of node %s" \
-                                % server)
+                tc.logger.error("Unable to get connection to 'root' of "
+                                "node %s" % server)
                 return False
-
-
-            if not conn.modules.os.path.exists(conn.modules.os.path.dirname(filename)):
-                conn.modules.os.makedirs(conn.modules.os.path.dirname(filename))
+            if not conn.modules.os.path.exists(conn.modules.os.path.\
+                    dirname(filename)):
+                conn.modules.os.makedirs(conn.modules.os.path.\
+                        dirname(filename))
         except:
-            tc.logger.error("Exception occured while creating directory  for file %s" % filename)
+            tc.logger.error("Exception occured while creating directory  for "
+                            "file %s" % filename)
             return False
         finally:
             conn.close()
@@ -49,17 +52,20 @@ def write_file(filename, file_contents=" ", create_mode='', filesize='', server=
         try:
             conn = tc.get_connection(server, 'root')
             if conn == -1:
-                tc.logger.error("Unable to get connection to 'root' of node %s" \
-                                % server)
+                tc.logger.error("Unable to get connection to 'root' of node "
+                                "%s" % server)
                 return False
 
-            if not conn.modules.os.path.exists(conn.modules.os.path.dirname(filename)):
-                conn.modules.os.makedirs(conn.modules.os.path.dirname(filename))
+            if not conn.modules.os.path.exists(conn.modules.os.path.\
+                    dirname(filename)):
+                conn.modules.os.makedirs(conn.modules.os.path.\
+                        dirname(filename))
 
             with conn.builtin.open(filename, 'w') as _filehandle:
                 _filehandle.write(file_contents)
         except:
-            tc.logger.error("Exception occured while writing file %s" % filename)
+            tc.logger.error("Exception occured while writing file %s" \
+                    % filename)
             return False
 
         finally:
@@ -87,6 +93,7 @@ def write_file(filename, file_contents=" ", create_mode='', filesize='', server=
 
     return True
 
+
 def remove_file(filename, server=''):
     """
     This module removes the given file
@@ -100,17 +107,14 @@ def remove_file(filename, server=''):
     """
     if server == '':
         server = tc.nodes[0]
-
     try:
         conn = tc.get_connection(server, 'root')
         if conn == -1:
             tc.logger.error("Unable to get connection to 'root' of node %s" \
                             % server)
             return False
-
         if conn.modules.os.path.exists(filename):
             conn.modules.os.remove(filename)
-
     except:
         tc.logger.error("Exception occured while removing file %s" % filename)
         return False
@@ -119,6 +123,7 @@ def remove_file(filename, server=''):
         conn.close()
 
     return True
+
 
 def calculate_checksum(file_list, server=''):
     """
@@ -154,7 +159,9 @@ def calculate_checksum(file_list, server=''):
 
     return checksum_dict
 
-def get_extended_attributes_info(file_list, encoding='hex', attr_name='', server=''):
+
+def get_extended_attributes_info(file_list, encoding='hex', attr_name='', \
+        server=''):
     """
     This module gets extended attribute info for the given file list
     @paramater:
@@ -187,7 +194,7 @@ def get_extended_attributes_info(file_list, encoding='hex', attr_name='', server
             if line.startswith('#'):
                 match = re.search(r'.*file:\s(\S+).*', line)
                 if match is None:
-                    tc.logger.error("getfattr output is not in expected format")
+                    tc.logger.error("getfattr output isn't in expected format")
                     return None
                 key = "/" + match.group(1)
                 attr_dict[key] = {}
@@ -195,6 +202,7 @@ def get_extended_attributes_info(file_list, encoding='hex', attr_name='', server
                 output = line.split('=')
                 attr_dict[key][output[0]] = output[1]
     return attr_dict
+
 
 def get_filepath_from_rhsnode(filename, server=''):
     """
@@ -204,19 +212,17 @@ def get_filepath_from_rhsnode(filename, server=''):
         * server    - <str> (optional) name of the server.
                       If not given, the function takes the
                       first client from config file
-    @Returns: file path for the given file in rhs node in list format, on success
-              None, on failure
+    @Returns: file path for the given file in rhs node in list format
+              on success None, on failure
     """
     if server == '':
         server = tc.clients[0]
 
-    output = get_extended_attributes_info([filename],
-                                          attr_name='trusted.glusterfs.pathinfo',
-                                          server=server)
+    output = get_extended_attributes_info([filename], \
+            attr_name='trusted.glusterfs.pathinfo', server=server)
     if output is None:
         tc.logger.error("Failed to get path info")
         return None
 
     pathinfo = output[filename]['trusted.glusterfs.pathinfo']
     return re.findall(".*?POSIX.*?:(\S+)\>", pathinfo)
-

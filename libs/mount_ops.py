@@ -33,6 +33,7 @@ def mount_volume(volname, mtype='glusterfs', mpoint='/mnt/glusterfs', \
             verbose=False)
     return tc.run(mclient, mcmd)
 
+
 def umount_volume(client, mountpoint):
     """
         unmounts the mountpoint
