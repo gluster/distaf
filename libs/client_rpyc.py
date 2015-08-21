@@ -41,7 +41,7 @@ class big_bang:
             os.makedirs(client_logdir)
         self.logger = logging.getLogger('client_rpyc')
         self.lhndlr = logging.FileHandler(client_logfile)
-        formatter = logging.Formatter('%(asctime)s %(levelname)s %(funcName)s'
+        formatter = logging.Formatter('%(asctime)s %(levelname)s %(funcName)s '
                                      '%(message)s')
         self.lhndlr.setFormatter(formatter)
         self.logger.addHandler(self.lhndlr)
@@ -102,8 +102,8 @@ class big_bang:
                 self.establish_connection(node, user)
                 break
             except:
-                self.logger.debug("Couldn't connect to %s. Retrying again in "
-                                 "42 seconds" % node)
+                self.logger.debug("Couldn't connect to %s. Retrying in 42 "
+                                  "seconds" % node)
                 time.sleep(42)
                 timeout = timeout - 42
         if timeout < 0:
@@ -129,8 +129,8 @@ class big_bang:
         except:
             ret = self.refresh_connection(node, user)
             if not ret:
-                self.logger.critical("Couldn't establish connection to %s" % \
-                        node)
+                self.logger.critical("Unable to connect to %s@%s" \
+                        % (user, node))
                 return (-1, -1, -1)
             subp = self.subp_conn[node][user]
             p = subp.Popen(cmd, shell=True, stdout=subp.PIPE, stderr=subp.PIPE)
@@ -194,7 +194,7 @@ class big_bang:
         ret = True
         for server in servers:
             sdict[server] = self.run_async(server, command, user, verbose)
-        for server in servers:
+        for server in set(servers):
             sdict[server].wait()
             ps, _, _ = sdict[server].value()
             out_dict[server] = ps
@@ -240,9 +240,22 @@ class big_bang:
             Returns True on success and False on failure
         """
         if 'root' not in self.connection_handles[node]:
-            self.logger.error("An ssh connection to root@%s is not present" \
+            self.logger.error("ssh connection to 'root' of %s is not present" \
                     % node)
             return False
+        conn = self.get_connection(node, 'root')
+        if conn == -1:
+            self.logger.error("Unable to get connection for root@%s" % node)
+            return False
+        try:
+            conn.modules.grp.getgrnam(group)
+            self.logger.debug("Group %s already exists on %s" % (group, node))
+            conn.close()
+            return True
+        except KeyError:
+            self.logger.debug("group %s does not exist in %s. Creating now" \
+                    % (group, node))
+            conn.close()
         ret = self.run(node, "groupadd %s" % group)
         if ret[0] != 0:
             self.logger.error("Unable to add group %s to %s" % (group, node))
@@ -262,26 +275,35 @@ class big_bang:
             dict of connection_handles
         """
         if 'root' not in self.connection_handles[node]:
-            self.logger.error("An ssh connection to root@%s is not present" \
+            self.logger.error("ssh connection to 'root' of %s is not present" \
                     % node)
-            return False
-        grp_add_cmd = ''
-        if group != '':
-            ret = self.add_group(node, group)
-            if not ret:
-                return False
-            grp_add_cmd = "-G %s" % group
-        ret = self.run(node, \
-"useradd -m %s -p $(perl -e'print crypt(%s, \"salt\")') %s" % \
-(grp_add_cmd, password, user), user='root')
-        if ret[0] != 0:
-            self.logger.error("Unable to add user %s to the remote node %s" \
-                    % (user, node))
             return False
         conn = self.get_connection(node, 'root')
         if conn == -1:
             self.logger.error("Unable to get connection to 'root' of node %s" \
                     % node)
+            return False
+        try:
+            conn.modules.pwd.getpwnam(user)
+            self.logger.debug("User %s already exist in %s" % (user, node))
+            return True
+        except KeyError:
+            self.logger.debug("User %s doesn't exist in %s. Creating now" \
+                    % (user, node))
+        grp_add_cmd = ''
+        if group != '':
+            ret = self.add_group(node, group)
+            if not ret:
+                return False
+            grp_add_cmd = "-g %s" % group
+        else:
+            group = user
+            grp_add_cmd = '-U'
+        ret = self.run(node, \
+"useradd -m %s -p $(perl -e'print crypt(%s, \"salt\")') %s" % \
+(grp_add_cmd, password, user), user='root')
+        if ret[0] != 0:
+            self.logger.error("Unable to add the user %s to %s" % (user, node))
             return False
         conn.modules.os.makedirs("/home/%s/.ssh" % user)
         rfh = conn.builtin.open("/home/%s/.ssh/authorized_keys" % user, "a")
