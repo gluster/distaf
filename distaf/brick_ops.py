@@ -1,5 +1,5 @@
 import re
-from libs.util import tc
+from distaf.util import tc
 
 """
     This file contains the gluster brick operations like

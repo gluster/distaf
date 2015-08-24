@@ -1,6 +1,6 @@
 import re
 import time
-from libs.util import tc
+from distaf.util import tc
 
 """
     Libraries containing gluster rebalance operations

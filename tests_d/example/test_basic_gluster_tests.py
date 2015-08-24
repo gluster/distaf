@@ -1,6 +1,6 @@
-from libs.util import tc, testcase
-from libs.mount_ops import mount_volume, umount_volume
-from libs.volume_ops import setup_vol, stop_volume, delete_volume
+from distaf.util import tc, testcase
+from distaf.mount_ops import mount_volume, umount_volume
+from distaf.volume_ops import setup_vol, stop_volume, delete_volume
 
 @testcase("gluster_basic_test")
 def gluster_basic_test():

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
-from libs.util import tc
-from libs.volume_ops import start_volume, stop_volume
+from distaf.util import tc
+from distaf.volume_ops import start_volume, stop_volume
 
 
 def snap_create(volname, snapname, server='', desc=''):

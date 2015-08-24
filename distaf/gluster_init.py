@@ -1,4 +1,4 @@
-from libs.util import tc
+from distaf.util import tc
 
 """
     This file contains the glusterd and other initial gluster

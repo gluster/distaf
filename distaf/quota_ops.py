@@ -1,4 +1,4 @@
-from libs.util import tc
+from distaf.util import tc
 
 
 def enable_quota(volname, server=''):
