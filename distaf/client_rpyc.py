@@ -189,12 +189,13 @@ class big_bang:
             user = self.user
         if servers == '':
             servers = self.servers
+        servers = set(servers)
         sdict = {}
         out_dict = {}
         ret = True
         for server in servers:
             sdict[server] = self.run_async(server, command, user, verbose)
-        for server in set(servers):
+        for server in servers:
             sdict[server].wait()
             ps, _, _ = sdict[server].value()
             out_dict[server] = ps
