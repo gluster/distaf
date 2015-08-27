@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 """
-Description: Library for gluster peer operations.
+    Description: Library for gluster peer operations.
 """
 
 from distaf.util import tc
@@ -20,14 +20,18 @@ def peer_probe(pnode='', servers='', timeout=10):
     if servers == '':
         servers = tc.nodes[1:]
 
+    nodes_pool_list = nodes_from_pool_list(pnode)
+    if not nodes_pool_list:
+        return False
     for server in servers:
-        ret = tc.run(pnode, "gluster peer probe %s" % server)
-        if ret[0] != 0 or re.search(r'^peer\sprobe\:\ssuccess(.*)', ret[1]) \
-                is None:
-            tc.logger.error("Failed to do peer probe for node %s" % server)
-            return False
-
+        if server not in nodes_pool_list:
+            ret = tc.run(pnode, "gluster peer probe %s" % server)
+            if ret[0] != 0 or \
+                    re.search(r'^peer\sprobe\:\ssuccess(.*)', ret[1]) is None:
+                tc.logger.error("Failed to do peer probe for node %s" % server)
+                return False
     time.sleep(timeout)
+
     #Validating whether peer probe is successful
     if not validate_peer_status(pnode, servers):
         tc.logger.error("peer probe validation failed")
@@ -152,3 +156,24 @@ def pool_list(pnode=''):
                 pool_info.append(temp_dict)
 
     return pool_info
+
+
+def nodes_from_pool_list(pnode=''):
+    """
+        Runs the "gluster pool list" on the specified server
+        and returns a list of servers from the pool list
+
+        Returns False on failure and list of servers on success
+    """
+    if pnode == '':
+        pnode = tc.nodes[0]
+    servers = []
+    nodes_from_pool = pool_list()
+    if not nodes_from_pool:
+        return False
+    for server in nodes_from_pool:
+        if server.get('Hostname') == "localhost":
+            servers.insert(0, pnode)
+        else:
+            servers.append(server.get("Hostname"))
+    return servers

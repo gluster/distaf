@@ -4,7 +4,7 @@ import re
 import time
 from distaf.util import tc
 from pprint import pformat
-from distaf.peer_ops import peer_probe
+from distaf.peer_ops import peer_probe, nodes_from_pool_list
 from distaf.mount_ops import mount_volume
 try:
     import xml.etree.cElementTree as etree
@@ -26,7 +26,9 @@ def create_volume(volname, dist, rep=1, stripe=1, trans='tcp', servers='', \
         volname and distribute count are mandatory argument
     """
     if servers == '':
-        servers = tc.nodes[:]
+        servers = nodes_from_pool_list()
+    if not servers:
+        servers = tc.nodes
     dist = int(dist)
     rep = int(rep)
     stripe = int(stripe)
