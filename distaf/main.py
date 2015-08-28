@@ -5,8 +5,10 @@ import re
 import sys
 import unittest
 import argparse
+import xmlrunner
+from distaf.util import testcases, finii
 
-__version__ = '0.0.1'
+__version__ = '0.0.2'
 
 if os.getcwd() not in sys.path:
     sys.path.append(os.getcwd())
@@ -59,11 +61,12 @@ def set_tests(tests=[]):
 
 
 def main():
-    from distaf.util import testcases, finii
-
     parser = argparse.ArgumentParser()
     parser.add_argument("-t", help="Test case(s) to run")
     parser.add_argument("-d", help="Directory to choose tests from")
+    parser.add_argument("-j", help="Directory to store JUnit XML file",
+                        action="store",
+                        dest="xmldir")
     args = parser.parse_args()
 
     if args.d != None and args.t != None:
@@ -82,7 +85,12 @@ def main():
     get_num = lambda x: int(re.search(r'test_([0-9]+)_', x).group(1))
     sortcmp = lambda _, x, y: cmp(get_num(x), get_num(y))
     unittest.TestLoader.sortTestMethodsUsing = sortcmp
-    runner = unittest.TextTestRunner(verbosity=2)
+
+    if args.xmldir != None:
+        runner = xmlrunner.XMLTestRunner(output=args.xmldir)
+    else:
+        runner = unittest.TextTestRunner(verbosity=2)
+
     itersuite = unittest.TestLoader().loadTestsFromTestCase(gluster_tests)
     runner.run(itersuite)
     finii()
