@@ -56,6 +56,7 @@ How to run
 ####Note:
      * Automation test logs are at /var/log/tests/ by default in management node. This can be changed by exporting LOG_FILE="/new/path/"
 
+ - To create junit output in directory /tmp/test_results: `python main.py -j /tmp/test_results`
 
 How to write tests
 ====================

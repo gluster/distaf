@@ -43,7 +43,7 @@ setup(
         'Programming Language :: Python :: 2.7'
         'Topic :: Software Development :: Testing'
     ],
-    install_requires=['plumbum', 'rpyc'],
+    install_requires=['plumbum', 'rpyc', 'unittest-xml-reporting'],
     entry_points={
         'console_scripts': [
             'distaf = distaf.main:main',
