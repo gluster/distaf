@@ -168,7 +168,7 @@ def nodes_from_pool_list(pnode=''):
     if pnode == '':
         pnode = tc.nodes[0]
     servers = []
-    nodes_from_pool = pool_list()
+    nodes_from_pool = pool_list(pnode)
     if not nodes_from_pool:
         return False
     for server in nodes_from_pool:
