@@ -480,3 +480,27 @@ def get_volume_info(volname='all', server=''):
             else:
                 volinfo[volname][elem.tag] = elem.text
     return volinfo
+
+
+def set_volume_option(volname, options, server=''):
+    """
+    This module sets the option values for the given volume.
+    @parameter:
+        * volname - <str> name of the volume to get status.
+        * option  - list of <dict> volume options in key value format.
+        * server  - <str> (optional) name of the server to execute the volume
+                    status command. If not given, the function takes the
+                    first node from config file
+    @Returns: True, on success
+              False, on failure
+    """
+    if server == '':
+        server = tc.nodes[0]
+    _rc = True
+    for option in options:
+        cmd = "gluster volume set %s %s %s" % (volname, option, \
+                options[option])
+        ret = tc.run(server, cmd)
+        if ret[0] != 0:
+            _rc = False
+    return _rc
