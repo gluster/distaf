@@ -4,8 +4,9 @@ import time
 from distaf.util import tc
 from distaf.peer_ops import peer_probe
 from distaf.volume_ops import create_volume
+from distaf.gluster_init import env_setup_servers
 from distaf.mount_ops import mount_volume, umount_volume
-from distaf.gluster_init import start_glusterd, stop_glusterd, env_setup_servers
+from distaf.gluster_init import start_glusterd, stop_glusterd
 
 
 def set_sync_mode(mvol, svol, mode, mnode='', snode=''):
@@ -49,6 +50,7 @@ def set_sync_mode(mvol, svol, mode, mnode='', snode=''):
         tc.logger.error("Unable to set the sync mode to %s" % mode)
         return False
 
+
 def set_change_detector(mvol, svol, detector, mnode='', snode=''):
     """
         Sets the change detector of the geo-rep session
@@ -71,8 +73,8 @@ def set_change_detector(mvol, svol, detector, mnode='', snode=''):
         tc.logger.debug("The change detector is already set to %s" \
                        % detector)
         return True
-    cmd = "gluster volum geo-replicatio %s %s%s::%s config change_detector %s" \
-            % (mvol, mountbroker, snode, svol, detector)
+    cmd = "gluster volume geo-replication %s %s%s::%s config change_detector \
+%s" % (mvol, mountbroker, snode, svol, detector)
     ret, _, _ = tc.run(mnode, cmd)
     if ret == 0:
         tc.logger.debug("Change detector successfully set to %s" % detector)
@@ -81,6 +83,7 @@ def set_change_detector(mvol, svol, detector, mnode='', snode=''):
     else:
         tc.logger.error("Unable to set the change detector to %s" % detector)
         return False
+
 
 def create_geo_rep_data(client, path, fop, user='', async=False):
     """
@@ -123,6 +126,7 @@ file_type, fop, path)
         else:
             return True
 
+
 def check_geo_filecount_status(master, mastervol, slave, slavevol, \
         timeout=1200, mclient='', sclient=''):
     """
@@ -157,7 +161,7 @@ def check_geo_filecount_status(master, mastervol, slave, slavevol, \
         if retm[0] != 0 or rets[0] != 0:
             tc.logger.error("find returned error. Please check glusterfs logs")
         elif int(retm[1]) != int(rets[1]):
-            tc.logger.debug("filecount does not match between master and slave")
+            tc.logger.debug("filecount doesn't match between master and slave")
         else:
             tc.logger.info("filecount of master and slave match")
             rc = True
@@ -167,6 +171,7 @@ def check_geo_filecount_status(master, mastervol, slave, slavevol, \
     umount_volume(mclient, master_mount)
     umount_volume(sclient, slave_mount)
     return rc
+
 
 def check_geo_arequal_status(master, mastervol, slave, slavevol, \
         timeout=600, mclient='', sclient=''):
@@ -227,6 +232,7 @@ def create_geo_passwordless_ssh(mnode, snode, gsuser=''):
     loc = "/var/lib/glusterd/geo-replication/"
     mconn = tc.get_connection(mnode, user='root')
     sconn = tc.get_connection(snode, user=gsuser)
+    tc.run(mnode, "ssh-keyscan %s >> /root/.ssh/known_hosts" % snode)
     if not mconn.modules.os.path.isfile('/root/.ssh/id_rsa'):
         if not mconn.modules.os.path.isfile('%s/secret.pem' % loc):
             tc.logger.debug("id_rsa not present. Generating with gsec_create")
@@ -237,6 +243,7 @@ def create_geo_passwordless_ssh(mnode, snode, gsuser=''):
         tc.logger.debug("Copying the secret.pem to id_rsa")
         mconn.modules.shutil.copyfile("%s/secret.pem" % loc, \
                 "/root/.ssh/id_rsa")
+        mconn.modules.os.chmod("/root/.ssh/id_rsa", 0600)
         tc.logger.debug("Copying the secret.pem.pub to id_rsa.pub")
         mconn.modules.shutil.copyfile("%s/secret.pem.pub" % loc, \
                 "/root/.ssh/id_rsa.pub")
@@ -256,6 +263,40 @@ def create_geo_passwordless_ssh(mnode, snode, gsuser=''):
         sconn.close()
     tc.logger.debug("Password less ssh setup from %s@%s to %s@%s is %s" \
             % ('root', mnode, gsuser, snode, 'successfull'))
+    return True
+
+
+def geo_rep_setup_metavolume(mvol, svol, slave, servers=''):
+    """
+        Sets up a meta volume for geo-replication consumption
+
+        @ parameter:
+            * mvol - Master volume name
+            * svol - Slave volume name
+            * slave - slave host node
+            * servers - Cluster of nodes where meta-volume should be created
+                        and mounted
+
+        @ returns:
+            True upon successfully configuring meta-volume
+            False otherwise
+    """
+    if servers == '':
+        servers = tc.gm_nodes
+    meta_volname = "gluster_shared_storage"
+    ret = setup_meta_vol(servers)
+    if not ret:
+        tc.logger.error("meta volume config failed. Aborting")
+        return False
+    mountbroker = ''
+    if tc.config_data['MOUNTBROKER'] == "True":
+        mountbroker = "%s@" % tc.config_data['GEO_USER']
+    config_cmd = "gluster volume geo-replication %s %s%s::%s config \
+use_meta_volume true" % (mvol, mountbroker, slave, svol)
+    ret = tc.run(servers[0], config_cmd)
+    if ret[0] != 0:
+        tc.logger.error("Unable to config the geo-rep session to use metavol")
+        return False
     return True
 
 
@@ -351,10 +392,11 @@ def setup_geo_rep_session(setup=''):
     ret = create_volume(mastervol, dist, rep, stripe, trans, \
             servers=tc.gm_nodes)
     if 0 != ret[0]:
-        tc.logger.error("Unable to create master volume. Please check the logs")
+        tc.logger.error("Unable to create geo-rep master volume. "
+                "Please check the gluster logs")
         return False
-    ret, _, _ = tc.run(mnode, "gluster volume start %s" % mastervol)
-    if ret != 0:
+    ret = start_volume(mastervol, mnode)
+    if not ret:
         tc.logger.error("volume start master volume failed")
         return False
     if setup == '':
@@ -369,8 +411,8 @@ def setup_geo_rep_session(setup=''):
         if ret[0] != 0:
             tc.logger.error("Unable to create the slave volume")
             return False
-        ret, _, _ = tc.run(snode, "gluster volume start %s" % slavevol)
-        if ret != 0:
+        ret = start_volume(slavevol, snode)
+        if not ret:
             tc.logger.error("volume start failed in slave cluster")
             return False
         if tc.config_data['MOUNTBROKER'] == 'True':
@@ -395,18 +437,28 @@ def setup_geo_rep_session(setup=''):
             if ret[0] != 0:
                 tc.logger.error("Couldn't set pem keys in slave")
                 rc = False
-        ret = tc.run(mnode, "gluster volume geo-replication %s %s%s::%s start" \
-                    % (mastervol, mountbroker, snode, slavevol))
+        if tc.config_data['USE_META_VOL'] == "True":
+            ret = geo_rep_setup_metavolume(mastervol, slavevol, snode)
+            if not ret:
+                tc.logger.error("Unable to setup meta-volume for geo-rep")
+                rc = False
+        syn_mode = tc.config_data['GEO_SYNC_MODE']
+        ret = set_sync_mode(mastervol, slavevol, syn_mode)
+        if not ret:
+            tc.logger.error("Unable to set the sync mode to %s" % sync_mode)
+            rc = False
+        ret = tc.run(mnode, "gluster volume geo-replication %s %s%s::%s \
+start" % (mastervol, mountbroker, snode, slavevol))
         if ret[0] != 0:
             rc = False
-        ret = tc.run(mnode, "gluster volum geo-replication %s %s%s::%s status" \
-                    % (mastervol, mountbroker, snode, slavevol))
+        ret = tc.run(mnode, "gluster volum geo-replication %s %s%s::%s \
+status" % (mastervol, mountbroker, snode, slavevol))
         if ret[0] != 0 or re.search(r'faulty', ret[1] + ret[2]):
             tc.logger.error("geo-rep status faulty. Please check the logs")
             rc = False
         time.sleep(60)
-        ret = tc.run(mnode, "gluster volum geo-replication %s %s%s::%s status" \
-                    % (mastervol, mountbroker, snode, slavevol))
+        ret = tc.run(mnode, "gluster volum geo-replication %s %s%s::%s \
+status" % (mastervol, mountbroker, snode, slavevol))
         if ret[0] != 0 or re.search(r'faulty', ret[1] + ret[2]):
             tc.logger.error("geo-rep session faulty after 60 seconds")
             rc = False
@@ -471,8 +523,8 @@ def geo_rep_basic_test(fop, cd='changelog', history=False):
         tc.logger.error("Data creation failed. Marking the test as FAIL")
         return False
     if history:
-        ret = tc.run(mnode, "gluster volume geo-replication %s %s%s::%s start" \
-                    % (mastervol, mountbroker, snode, slavevol))
+        ret = tc.run(mnode, "gluster volume geo-replication %s %s%s::%s \
+start" % (mastervol, mountbroker, snode, slavevol))
         if ret[0] != 0:
             tc.logger.error("Unable to start geo-rep session in history tests")
             return False
