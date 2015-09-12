@@ -12,9 +12,5 @@
 # GS_NODES: Only applicable for geo-rep. geo-rep slave nodes.
 
 
-#export MGMT_NODE="mgmt_node"
-#export NODES="server0 server1 server3 server4"
-#export CLIENTS="client0 client1"
-#export PEERS="peer0"
-#export GM_NODES="gm_master0 gm_master1"
-#export GS_NODES="gs_slave0 gs_slave1"
+export NODES="mustang harrier typhoon falcon"
+export CLIENTS="interceptor"

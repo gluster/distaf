@@ -6,12 +6,13 @@ import sys
 import unittest
 import argparse
 import xmlrunner
-from distaf.util import testcases, finii
 
 __version__ = '0.0.2'
 
 if os.getcwd() not in sys.path:
     sys.path.append(os.getcwd())
+
+from distaf.util import testcases, finii
 
 
 def collect_all_tests(dir="tests_d"):
