@@ -12,7 +12,8 @@ def get_config_data():
         for node in configs['volumes'][vol]['servers']:
             if node not in configs['servers']:
                 configs['servers'][node] = {}
-        for node in configs['volumes'][vol]['peers']:
-            if node not in configs['peers']:
-                configs['servers'][node] = {}
+        if configs['volumes'][vol]['peers'] is not None:
+            for node in configs['volumes'][vol]['peers']:
+                if node not in configs['peers']:
+                    configs['servers'][node] = {}
     return configs
