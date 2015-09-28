@@ -13,33 +13,22 @@ class big_bang:
         """
         self.config_data = get_config_data()
 
-        self.nodes = self.config_data['NODES']
-        self.peers = self.config_data['PEERS']
-        self.clients = self.config_data['CLIENTS']
-        self.gm_nodes = self.config_data['GM_NODES']
-        self.gm_peers = self.config_data['GM_PEERS']
-        self.gs_nodes = self.config_data['GS_NODES']
-        self.gs_peers = self.config_data['GS_PEERS']
-        self.number_nodes = len(self.nodes)
-        self.number_peers = len(self.peers)
-        self.number_clients = len(self.clients)
-        self.number_gm_nodes = len(self.gm_nodes)
-        self.number_gm_peers = len(self.gm_peers)
-        self.number_gs_nodes = len(self.gs_nodes)
-        self.number_gs_peers = len(self.gs_peers)
+        # Initialise servers and clients
+        self.servers = self.config_data['servers'].keys()
+        self.clients = self.config_data['clients'].keys()
+        self.all_nodes = list(set(self.servers + self.clients))
+        self.num_servers = len(self.servers)
+        self.num_clients = len(self.clients)
+        self.user = self.config_data['remote_user']
         self.global_flag = {}
 
-        self.servers = self.nodes + self.peers + self.gm_nodes + \
-                self.gm_peers + self.gs_nodes + self.gs_peers
-        self.all_nodes = self.nodes + self.peers + self.clients + \
-                self.gm_nodes + self.gm_peers + self.gs_nodes + self.gs_peers
-
-        client_logfile = self.config_data['LOG_FILE']
-        loglevel = getattr(logging, self.config_data['LOG_LEVEL'].upper())
+        # setup logging in distaf
+        client_logfile = os.path.abspath(self.config_data['log_file'])
+        loglevel = getattr(logging, self.config_data['log_level'].upper())
         client_logdir = os.path.dirname(client_logfile)
         if not os.path.exists(client_logdir):
             os.makedirs(client_logdir)
-        self.logger = logging.getLogger('client_rpyc')
+        self.logger = logging.getLogger('distaf')
         self.lhndlr = logging.FileHandler(client_logfile)
         formatter = logging.Formatter('%(asctime)s %(levelname)s %(funcName)s '
                                      '%(message)s')
@@ -47,8 +36,7 @@ class big_bang:
         self.logger.addHandler(self.lhndlr)
         self.logger.setLevel(loglevel)
 
-        self.user = self.config_data['REMOTE_USER']
-
+        # Make connections
         self.connection_handles = {}
         self.subp_conn = {}
         for node in self.all_nodes:

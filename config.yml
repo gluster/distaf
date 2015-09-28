@@ -1,0 +1,45 @@
+ log_file: /var/log/tests/config_changes.log
+ log_level: DEBUG
+ remote_user: root
+
+ servers:
+    spitfire:
+        devices: ["/dev/vdb", "/dev/vdc"]
+    mustang:
+        devices: ["/dev/vdb", "/dev/vdc"]
+    typhoon:
+        devices: ["/dev/vdb", "/dev/vdc"]
+    harrier:
+        devices: ["/dev/vdb", "/dev/vdc"]
+    falcon:
+        devices: ["/dev/vdb", "/dev/vdc"]
+    hornet:
+        devices: ["/dev/vdb", "/dev/vdc"]
+    interceptor:
+        devices: ["/dev/vdb", "/dev/vdc"]
+    lightning:
+        devices: ["/dev/vdb", "/dev/vdc"]
+
+ clients:
+    interceptor:
+        mount_proto: glusterfs
+    lightning:
+        mount_proto: nfs
+
+ volumes:
+    hosdu:
+        dist_count: 2
+        rep_coount: 2
+        trans_type: tcp
+        servers: [ spitfire, mustang, typhoon, harrier ]
+        peers:
+    testvol:
+        disperse_count: 2
+        redundancy_count: 2
+        trans_type: tcp
+        servers: [ falcon, hornet, interceptor, lightning ]
+        peers:
+
+ geo-rep:
+    master:
+    slave:
