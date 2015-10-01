@@ -26,6 +26,8 @@
     lightning:
         mount_proto: nfs
 
+ run_global_mode: False
+
  volumes:
     hosdu:
         dist_count: 2

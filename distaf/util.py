@@ -1,4 +1,7 @@
 from distaf.client_rpyc import big_bang
+from distaf.config_parser import get_testcase_config
+
+
 testcases = {}
 tc = big_bang()
 
@@ -29,6 +32,7 @@ def testcase(name):
         def wrapper(self):
             tc.logger.info("Starting the test: %s" % name)
             inject_gluster_logs(name)
+            tc_config = get_testcase_config(func.__doc__)
             ret = func()
             self.assertTrue(ret, "Testcase %s failed" % name)
             inject_gluster_logs(name)

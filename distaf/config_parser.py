@@ -1,7 +1,7 @@
 import yaml
 
 
-def get_config_data():
+def get_global_config():
     """
         Gets all the config data from the distaf_config.yml file
 
@@ -17,3 +17,28 @@ def get_config_data():
                 if node not in configs['peers']:
                     configs['servers'][node] = {}
     return configs
+
+def get_testcase_config(config_string):
+    """
+        Parses the yaml structure config string passed to the function
+
+        @params: config string of yaml structure
+        @returns: python dict with config values on Success
+                  Upon failure None
+    """
+    if config_string == '':
+        return None
+    try:
+        config_dict = yaml.load(config_string)
+    except yaml.YAMLError:
+        return None
+    if 'runs_on_volumes' not in config_dict:
+        config_dict['runs_on_volumes'] = 'ALL'
+    if config_dict['runs_on_volumes'] == 'ALL':
+        config_dict['runs_on_volumes'] = ['dist', 'rep', 'dist-rep', \
+                'disperse', 'dist-disp', 'tier']
+    if 'run_on_protocol' not in config_dict:
+        config_dict['run_on_protocol'] = 'ALL'
+    if config_dict['run_on_protocol'] == 'ALL':
+        config_dict['run_on_protocol'] = ['glusterfs', 'nfs', 'cifs' ]
+    return config_dict

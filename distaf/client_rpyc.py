@@ -2,7 +2,7 @@ import os
 import time
 import logging
 from plumbum import SshMachine
-from distaf.config_parser import get_config_data
+from distaf.config_parser import get_global_config
 from rpyc.utils.zerodeploy import DeployedServer
 
 
@@ -11,20 +11,20 @@ class big_bang:
         """
             Initialises the whole environment and establishes connection
         """
-        self.config_data = get_config_data()
+        self.global_config = get_global_config()
 
         # Initialise servers and clients
-        self.servers = self.config_data['servers'].keys()
-        self.clients = self.config_data['clients'].keys()
+        self.servers = self.global_config['servers'].keys()
+        self.clients = self.global_config['clients'].keys()
         self.all_nodes = list(set(self.servers + self.clients))
         self.num_servers = len(self.servers)
         self.num_clients = len(self.clients)
-        self.user = self.config_data['remote_user']
+        self.user = self.global_config['remote_user']
         self.global_flag = {}
 
         # setup logging in distaf
-        client_logfile = os.path.abspath(self.config_data['log_file'])
-        loglevel = getattr(logging, self.config_data['log_level'].upper())
+        client_logfile = os.path.abspath(self.global_config['log_file'])
+        loglevel = getattr(logging, self.global_config['log_level'].upper())
         client_logdir = os.path.dirname(client_logfile)
         if not os.path.exists(client_logdir):
             os.makedirs(client_logdir)
