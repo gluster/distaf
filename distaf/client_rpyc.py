@@ -2,16 +2,18 @@ import os
 import time
 import logging
 from plumbum import SshMachine
-from distaf.config_parser import get_global_config
 from rpyc.utils.zerodeploy import DeployedServer
 
 
-class big_bang:
-    def __init__(self):
+class big_bang():
+    """
+        The big bang which starts the life in distaf
+    """
+    def __init__(self, configs):
         """
             Initialises the whole environment and establishes connection
         """
-        self.global_config = get_global_config()
+        self.global_config = configs
 
         # Initialise servers and clients
         self.servers = self.global_config['servers'].keys()

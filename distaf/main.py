@@ -12,7 +12,7 @@ __version__ = '0.0.2'
 if os.getcwd() not in sys.path:
     sys.path.append(os.getcwd())
 
-from distaf.util import testcases, finii
+from distaf.util import testcases, test_list, distaf_init, distaf_finii
 
 
 def collect_tests(_dir="tests_d"):
@@ -23,16 +23,16 @@ def collect_tests(_dir="tests_d"):
         to gluster_tests class.
     """
     if os.path.isfile(_dir):
-        m = __import__(_dir.replace("/", "."))
+        __import__((_dir.replace(".py", "")).replace("/", "."))
     else:
-        for top, dirs, files in os.walk(_dir, topdown=False):
+        for top, _, files in os.walk(_dir, topdown=False):
             for _f in files:
                 if _f.startswith("test_") and  _f.endswith(".py"):
                     iname = top + '/' + _f.replace(".py", "")
                     # When testcase is imported, decorator populates the
                     # Testcase and its value in a tuple. And that will be later
                     # added to ts list
-                    m = __import__(iname.replace("/", "."))
+                    __import__(iname.replace("/", "."))
 
 
 class gluster_tests(unittest.TestCase):
@@ -42,25 +42,27 @@ class gluster_tests(unittest.TestCase):
     pass
 
 
-def set_tests(tests=[]):
+def set_tests(tests=''):
     """
         Sets the gluster_tests Test class with the test cases.
         Name of the tests will be prepended with test_ to enable
         unittest to recognise them as test case
     """
-    if tests == []:
+    if tests == '':
         tests = testcases.keys()
-    else:
-        for name in testcases.keys():
-            if name not in tests:
-                del testcases[name]
+    if test_list == {}:
+        test_list[''] = testcases.keys()
     i = 0
-    for test in tests:
-        try:
-            setattr(gluster_tests, "test_%d_%s" % (i, test), testcases[test])
-            i = i + 1
-        except KeyError:
-            sys.stderr.write("Unable to find test %s. Skipping it...\n" % test)
+    for voltype, vol_tests in test_list.iteritems():
+        for test in vol_tests:
+            if test in tests:
+                try:
+                    setattr(gluster_tests, "test_%d_%s_%s" % \
+                            (i, voltype, test), testcases[test])
+                    i = i + 1
+                except KeyError:
+                    sys.stderr.write("Unable to find test %s. Skipping...\n" \
+                            % test)
 
 
 def main():
@@ -73,10 +75,12 @@ def main():
                         dest="xmldir")
     args = parser.parse_args()
 
+    _ = distaf_init()
+
     if args.f != None:
         collect_tests(args.f)
         set_tests()
-    if args.d != None and args.t != None:
+    elif args.d != None and args.t != None:
         collect_tests("tests_d/%s" % args.d)
         set_tests(args.t.split(' '))
     elif args.t != None:
@@ -100,7 +104,7 @@ def main():
 
     itersuite = unittest.TestLoader().loadTestsFromTestCase(gluster_tests)
     runner.run(itersuite)
-    finii()
+    distaf_finii()
 
 if __name__ == '__main__':
     main()
