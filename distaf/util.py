@@ -1,3 +1,4 @@
+from types import FunctionType
 from distaf.client_rpyc import big_bang
 from distaf.config_parser import get_global_config, get_testcase_config
 
@@ -49,11 +50,29 @@ def testcase(name):
         def wrapper(self):
             tc.logger.info("Starting the test: %s" % name)
             inject_gluster_logs(name)
-            ret = func()
-            self.assertTrue(ret, "Testcase %s failed" % name)
+            _ret = True
+            if isinstance(func, FunctionType):
+                _ret = func()
+            else:
+                func_obj = func()
+                ret = func_obj.setup()
+                if not ret:
+                    tc.logger.error("The setup of %s failed" % name)
+                    _ret = False
+                if _ret:
+                    ret = func_obj.run()
+                    if not ret:
+                        tc.logger.error("The execution of testcase %s failed" \
+                                % name)
+                        _ret = False
+                ret = func_obj.cleanup()
+                if not ret:
+                    tc.logger.error("The cleanup of %s failed" % name)
+                    _ret = False
+            self.assertTrue(_ret, "Testcase %s failed" % name)
             inject_gluster_logs(name)
             tc.logger.info("Ending the test: %s" % name)
-            return ret
+            return _ret
 
         testcases[name] = wrapper
         if not global_mode and tc_config is not None:
