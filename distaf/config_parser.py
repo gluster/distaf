@@ -42,4 +42,6 @@ def get_testcase_config(config_string):
         config_dict['run_on_protocol'] = 'ALL'
     if config_dict['run_on_protocol'] == 'ALL':
         config_dict['run_on_protocol'] = ['glusterfs', 'nfs', 'cifs']
+    if 'reuse_setup' not in config_dict:
+        config_dict['reuse_setup'] = True
     return config_dict

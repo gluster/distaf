@@ -8,7 +8,7 @@ def gluster_basic_test():
     """
         runs_on_volumes: ALL
         runs_on_protocol: [ glusterfs, nfs ]
-        packages_required: samba
+        reuse_setup: True
     """
     tc.logger.info("Testing gluster volume create and mounting")
     #volname = tc.test_config['volname']

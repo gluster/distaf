@@ -70,12 +70,14 @@ def main():
     parser.add_argument("-t", help="Test case(s) to run")
     parser.add_argument("-d", help="Directory to choose tests from")
     parser.add_argument("-f", help="Find the test cases from the file")
+    parser.add_argument("-c", help="The (yaml) config file to use",
+                              default="config.yml")
     parser.add_argument("-j", help="Directory to store JUnit XML file",
-                        action="store",
-                        dest="xmldir")
+                              action="store",
+                              dest="xmldir")
     args = parser.parse_args()
 
-    _ = distaf_init()
+    _ = distaf_init(args.c)
 
     if args.f != None:
         collect_tests(args.f)

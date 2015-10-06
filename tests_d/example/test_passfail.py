@@ -24,6 +24,7 @@ def going_to_fail():
     """
         runs_on_volumes: [ dist, dist-rep, rep ]
         runs_on_protocol: [ glusterfs, nfs ]
+        reuse_setup: True
     """
     tc.logger.info("Testing fail output")
     mnode = tc.servers[0]
