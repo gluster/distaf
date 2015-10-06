@@ -80,7 +80,7 @@ def testcase(name):
                 if voltype not in test_list:
                     test_list[voltype] = []
                 if not tc_config['reuse_setup']:
-                    test_list.insert(0, name)
+                    test_list[voltype].insert(0, name)
                 else:
                     test_list[voltype].append(name)
         return wrapper
