@@ -5,7 +5,7 @@ from plumbum import SshMachine
 from rpyc.utils.zerodeploy import DeployedServer
 
 
-class big_bang():
+class BigBang():
     """
         The big bang which starts the life in distaf
     """

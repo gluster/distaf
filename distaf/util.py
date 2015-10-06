@@ -1,5 +1,5 @@
 from types import FunctionType
-from distaf.client_rpyc import big_bang
+from distaf.client_rpyc import BigBang
 from distaf.config_parser import get_global_config, get_testcase_config
 
 
@@ -12,12 +12,12 @@ tc = None
 
 def distaf_init(config_file="config.yml"):
     """
-        The distaf init function which calls the  big_bang
+        The distaf init function which calls the  BigBang
     """
     global globl_configs, global_mode, tc
     globl_configs = get_global_config(config_file)
     global_mode = globl_configs['global_mode']
-    tc = big_bang(globl_configs)
+    tc = BigBang(globl_configs)
     return globl_configs
 
 
