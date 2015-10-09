@@ -5,9 +5,11 @@ from distaf.config_parser import get_global_config, get_testcase_config
 
 testcases = {}
 test_list = {}
+test_seq = []
 globl_configs = {}
 global_mode = None
 tc = None
+supported_vol_types = {}
 
 
 def distaf_init(config_file="config.yml"):
@@ -49,12 +51,16 @@ def testcase(name):
 
         def wrapper(self):
             tc.logger.info("Starting the test: %s" % name)
-            inject_gluster_logs(name)
+            voltype = test_seq.pop(0)
+            inject_gluster_logs("%s_%s" % (voltype, name))
             _ret = True
+            if not global_mode:
+                globl_configs.update(tc_config)
+                globl_configs['voltype'] = voltype
             if isinstance(func, FunctionType):
                 _ret = func()
             else:
-                func_obj = func()
+                func_obj = func(globl_configs)
                 ret = func_obj.setup()
                 if not ret:
                     tc.logger.error("The setup of %s failed" % name)
@@ -65,12 +71,12 @@ def testcase(name):
                         tc.logger.error("The execution of testcase %s failed" \
                                 % name)
                         _ret = False
-                ret = func_obj.cleanup()
+                ret = func_obj.teardown()
                 if not ret:
                     tc.logger.error("The cleanup of %s failed" % name)
                     _ret = False
             self.assertTrue(_ret, "Testcase %s failed" % name)
-            inject_gluster_logs(name)
+            inject_gluster_logs("%s_%s" % (voltype, name))
             tc.logger.info("Ending the test: %s" % name)
             return _ret
 

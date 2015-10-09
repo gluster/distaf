@@ -22,23 +22,44 @@
 
  clients:
     interceptor:
-        mount_proto: glusterfs
     lightning:
-        mount_proto: nfs
 
- run_global_mode: False
+ distribute:
+     dist_count: 4
+     trans_type: tcp
+
+ replicate:
+     replica: 3
+     trans_type: tcp
+
+ dist_rep:
+     dist_count: 2
+     replica: 2
+     trans_type: tcp
+
+ disperse:
+     disperse: 8
+     redundancy: 2
+     trans_type: tcp
+
+ dist_disperse:
+     dist_count: 2
+     disperse: 8
+     redundancy: 2
+     trans_type: tcp
+
+ global_mode: True
 
  volumes:
     hosdu:
-        dist_count: 2
-        rep_coount: 2
-        trans_type: tcp
+        voltype: dist_rep
         servers: [ spitfire, mustang, typhoon, harrier ]
         peers:
+        clients: [ interceptor ]
+        mount_proto: glusterfs
+        mountpoint: '/mnt/glusterfs'
     testvol:
-        disperse_count: 2
-        redundancy_count: 2
-        trans_type: tcp
+        voltype: disperse
         servers: [ falcon, hornet, interceptor, lightning ]
         peers:
 

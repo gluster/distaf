@@ -12,7 +12,8 @@ __version__ = '0.0.2'
 if os.getcwd() not in sys.path:
     sys.path.append(os.getcwd())
 
-from distaf.util import testcases, test_list, distaf_init, distaf_finii
+from distaf.util import testcases, test_list, distaf_init, distaf_finii, \
+                        test_seq
 
 
 def collect_tests(_dir="tests_d"):
@@ -60,6 +61,7 @@ def set_tests(tests=''):
                     setattr(gluster_tests, "test_%d_%s_%s" % \
                             (i, voltype, test), testcases[test])
                     i = i + 1
+                    test_seq.append(voltype)
                 except KeyError:
                     sys.stderr.write("Unable to find test %s. Skipping...\n" \
                             % test)
