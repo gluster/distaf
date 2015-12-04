@@ -2,7 +2,7 @@
  log_level: DEBUG
  remote_user: root
 
- servers:
+ nodes:
     spitfire:
         devices: ["/dev/vdb", "/dev/vdc"]
     mustang:
@@ -53,14 +53,14 @@
  volumes:
     hosdu:
         voltype: dist_rep
-        servers: [ spitfire, mustang, typhoon, harrier ]
+        nodes: [ spitfire, mustang, typhoon, harrier ]
         peers:
         clients: [ interceptor ]
         mount_proto: glusterfs
         mountpoint: '/mnt/glusterfs'
     testvol:
         voltype: disperse
-        servers: [ falcon, hornet, interceptor, lightning ]
+        nodes: [ falcon, hornet, interceptor, lightning ]
         peers:
 
  geo-rep:

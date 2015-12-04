@@ -9,13 +9,13 @@ def get_global_config(config_file):
     """
     configs = yaml.load(open(config_file, 'r'))
     for vol in configs['volumes']:
-        for node in configs['volumes'][vol]['servers']:
-            if node not in configs['servers']:
-                configs['servers'][node] = {}
+        for node in configs['volumes'][vol]['nodes']:
+            if node not in configs['nodes']:
+                configs['nodes'][node] = {}
         if configs['volumes'][vol]['peers'] is not None:
             for node in configs['volumes'][vol]['peers']:
                 if node not in configs['peers']:
-                    configs['servers'][node] = {}
+                    configs['nodes'][node] = {}
     return configs
 
 

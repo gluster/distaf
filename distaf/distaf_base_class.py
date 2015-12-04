@@ -16,7 +16,7 @@ class DistafTestClass():
         if config_data['global_mode']:
             self.volname = self.config_data['volumes'].keys()[0]
             self.voltype = self.config_data['volumes'][self.volname]['voltype']
-            self.servers = self.config_data['volumes'][self.volname]['servers']
+            self.nodes = self.config_data['volumes'][self.volname]['nodes']
             self.peers = self.config_data['volumes'][self.volname]['peers']
             self.clients = self.config_data['volumes'][self.volname]['clients']
             self.mount_proto = \
@@ -26,18 +26,18 @@ class DistafTestClass():
         else:
             self.voltype = self.config_data['voltype']
             self.volname = "%s-testvol" % self.voltype
-            self.servers = self.config_data['servers']
+            self.nodes = self.config_data['nodes']
             self.clients = self.config_data['clients']
             self.peers = self.config_data['peers']
             self.mount_proto = 'glusterfs'
             self.mountpoint = '/mnt/glusterfs'
-        self.mnode = self.servers[0]
+        self.mnode = self.nodes[0]
 
     def setup(self):
         """
             Function to setup the volume for testing.
         """
-        volinfo = get_volume_info(server=self.servers[0])
+        volinfo = get_volume_info(server=self.nodes[0])
         if volinfo in not None and self.volname in volinfo.keys():
             tc.logger.debug("The volume %s is already present in %s" \
                     % (self.volname, self.mnode))
@@ -64,7 +64,7 @@ class DistafTestClass():
                 trans = self.config_data[self.voltype]['trans']
 
             ret = setup_vol(self.volname, dist, rep, dispd, red, stripe, trans, \
-                    servers=self.servers)
+                    servers=self.nodes)
             if not ret:
                 tc.logger.error("Unable to setup volume %s. Aborting")
                 return False
