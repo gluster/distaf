@@ -1,4 +1,5 @@
 from distaf.util import tc, testcase
+from distaf.distaf_base_class import DistafTestClass
 from distaf.mount_ops import mount_volume, umount_volume
 from distaf.volume_ops import setup_vol, stop_volume, delete_volume
 
@@ -6,7 +7,7 @@ from distaf.volume_ops import setup_vol, stop_volume, delete_volume
 @testcase("gluster_basic_test")
 class gluster_basic_test(DistafTestClass):
     """
-        runs_on_volumes: ALL
+        runs_on_volumes: [ distribute, replicate, dist_rep ]
         runs_on_protocol: [ glusterfs, nfs ]
         reuse_setup: True
     """
@@ -25,5 +26,5 @@ class gluster_basic_test(DistafTestClass):
             tc.logger.error("cp failed in %s. Please check the logs" % client)
             _rc = False
         tc.run(client, "rm -rf %s/etc" % self.mountpoint)
-        umount_volume(client, mountpoint)
+        umount_volume(client, self.mountpoint)
         return _rc

@@ -218,20 +218,6 @@ def setup_vol(volname='', dist='', rep='', dispd='', red='', stripe='', \
 
         Returns True on success and False for failure.
     """
-    if volname == '':
-        volname = tc.config_data['VOLNAME']
-    if dist == '':
-        dist = tc.config_data['DIST_COUNT']
-    if rep == '':
-        rep = tc.config_data['REP_COUNT']
-    if dispd == '':
-        dispd = tc.config_data['DISPERSE']
-    if red == '':
-        red = tc.config_data['REDUNDANCY']
-    if stripe == '':
-        stripe = tc.config_data['STRIPE']
-    if trans == '':
-        trans = tc.config_data['TRANS_TYPE']
     if servers == '':
         servers = tc.nodes
     volinfo = get_volume_info(server=servers[0])
@@ -266,18 +252,6 @@ def setup_vol(volname='', dist='', rep='', dispd='', red='', stripe='', \
     if not ret:
         tc.logger.error("volume start %s failed" % volname)
         return False
-    if tc.config_data['ENABLE_QUOTA'] == 'True':
-        ret0 = enable_quota(volname, servers[0])
-        ret1 = set_quota_limit(volname, server=servers[0])
-        if ret0[0] != 0 or ret1[0] != 0:
-            tc.logger.error("Quota setup failed")
-            return False
-    if tc.config_data['ENABLE_USS'] == 'True':
-        ret = tc.run(servers[0], "gluster volume set %s features.uss enable" \
-                % volname)
-        if ret[0] != 0:
-            tc.logger.error("Unable to enable USS for volume %s" % volname)
-            return False
     tc.global_flag[volname] = True
     return True
 

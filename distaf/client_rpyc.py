@@ -179,7 +179,7 @@ class BigBang():
             user = self.user
         if servers == '':
             servers = self.nodes
-        nodes = set(nodes)
+        servers = list(set(servers))
         sdict = {}
         out_dict = {}
         ret = True

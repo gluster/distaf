@@ -1,68 +1,53 @@
- log_file: /var/log/tests/config_changes.log
+ log_file: /var/log/tests/changes_demo.log
  log_level: DEBUG
  remote_user: root
 
  nodes:
-    spitfire:
-        devices: ["/dev/vdb", "/dev/vdc"]
-    mustang:
-        devices: ["/dev/vdb", "/dev/vdc"]
-    typhoon:
-        devices: ["/dev/vdb", "/dev/vdc"]
-    harrier:
-        devices: ["/dev/vdb", "/dev/vdc"]
-    falcon:
-        devices: ["/dev/vdb", "/dev/vdc"]
-    hornet:
-        devices: ["/dev/vdb", "/dev/vdc"]
-    interceptor:
-        devices: ["/dev/vdb", "/dev/vdc"]
-    lightning:
-        devices: ["/dev/vdb", "/dev/vdc"]
+    vm9:
+        devices: ["/dev/vdb", "/dev/vdc", "/dev/vdd", "/dev/vde"]
+    vm10:
+        devices: ["/dev/vdb", "/dev/vdc", "/dev/vdd", "/dev/vde"]
+    vm11:
+        devices: ["/dev/vdb", "/dev/vdc", "/dev/vdd", "/dev/vde"]
+    vm12:
+        devices: ["/dev/vdb", "/dev/vdc", "/dev/vdd", "/dev/vde"]
+
+ peers:
 
  clients:
-    interceptor:
-    lightning:
+    vm12:
 
  distribute:
      dist_count: 4
-     trans_type: tcp
+     transport: tcp
 
  replicate:
      replica: 3
-     trans_type: tcp
+     transport: tcp
 
  dist_rep:
      dist_count: 2
      replica: 2
-     trans_type: tcp
+     transport: tcp
 
  disperse:
-     disperse: 8
+     disperse: 4
      redundancy: 2
-     trans_type: tcp
+     transport: tcp
 
  dist_disperse:
      dist_count: 2
-     disperse: 8
+     disperse: 4
      redundancy: 2
-     trans_type: tcp
+     transport: tcp
 
- global_mode: True
+ global_mode: False
 
  volumes:
     hosdu:
-        voltype: dist_rep
-        nodes: [ spitfire, mustang, typhoon, harrier ]
+        voltype: replicate
+        nodes: [ vm9, vm10, vm11 ]
         peers:
-        clients: [ interceptor ]
+        clients: [ vm12 ]
         mount_proto: glusterfs
         mountpoint: '/mnt/glusterfs'
-    testvol:
-        voltype: disperse
-        nodes: [ falcon, hornet, interceptor, lightning ]
-        peers:
-
- geo-rep:
-    master:
-    slave:
