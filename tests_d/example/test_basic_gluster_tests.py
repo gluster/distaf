@@ -7,7 +7,7 @@ from distaf.volume_ops import setup_vol, stop_volume, delete_volume
 @testcase("gluster_basic_test")
 class gluster_basic_test(DistafTestClass):
     """
-        runs_on_volumes: [ distribute, replicate, dist_rep ]
+        runs_on_volumes: ALL
         runs_on_protocol: [ glusterfs, nfs ]
         reuse_setup: True
     """
