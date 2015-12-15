@@ -13,7 +13,7 @@ if os.getcwd() not in sys.path:
     sys.path.append(os.getcwd())
 
 from distaf.util import testcases, test_list, distaf_init, distaf_finii, \
-                        test_seq
+                        test_seq, test_mounts
 
 
 def collect_tests(_dir="tests_d"):
@@ -57,14 +57,15 @@ def set_tests(tests=''):
     for voltype, vol_tests in test_list.iteritems():
         for test in vol_tests:
             if test in tests:
-                try:
-                    setattr(gluster_tests, "test_%d_%s_%s" % \
-                            (i, voltype, test), testcases[test])
-                    i = i + 1
-                    test_seq.append(voltype)
-                except KeyError:
-                    sys.stderr.write("Unable to find test %s. Skipping...\n" \
-                            % test)
+                for mount in test_mounts[test]:
+                    try:
+                        setattr(gluster_tests, "test_%d_%s_%s_%s" % \
+                                (i, voltype, mount, test), testcases[test])
+                        i = i + 1
+                        test_seq.append((voltype, mount))
+                    except KeyError:
+                        sys.stderr.write("Unable to find test %s." \
+                                         "Skipping...\n" % test)
 
 
 def main():

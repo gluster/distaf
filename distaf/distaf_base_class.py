@@ -31,8 +31,8 @@ class DistafTestClass():
             self.peers = []
             if config_data['peers'] is not None:
                 self.peers = config_data['peers'].keys()
-            self.mount_proto = 'glusterfs'
-            self.mountpoint = '/mnt/glusterfs'
+            self.mount_proto = config_data['mount_proto']
+            self.mountpoint = "/mnt/%s_mount" % self.mount_proto
         self.mnode = self.nodes[0]
         self.config_data = config_data
 
@@ -77,7 +77,8 @@ class DistafTestClass():
             ret = setup_vol(self.volname, dist, rep, dispd, red, \
                             stripe, trans, servers=self.nodes)
             if not ret:
-                tc.logger.error("Unable to setup volume %s. Aborting")
+                tc.logger.error("Unable to setup volume %s. Aborting" \
+                        % self.volname)
                 return False
         return True
 
@@ -85,7 +86,7 @@ class DistafTestClass():
         """
             The function to cleanup the test setup
         """
-        umount_volume(self.clients[0], self.mountpoint)
+        #umount_volume(self.clients[0], self.mountpoint)
         return True
 
     def cleanup(self):

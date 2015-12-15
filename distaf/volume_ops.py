@@ -125,6 +125,9 @@ def delete_volume(volname, mnode=''):
     if mnode == '':
         mnode = tc.nodes[0]
     volinfo = get_volume_info(volname, mnode)
+    if volinfo is None:
+        tc.logger.info("Volume %s does not exist in %s" % (volname, mnode))
+        return True
     bricks = volinfo[volname]['bricks']
     ret = tc.run(mnode, "gluster volume delete %s --mode=script" % volname)
     if ret[0] != 0:

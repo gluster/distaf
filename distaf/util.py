@@ -6,10 +6,10 @@ from distaf.config_parser import get_global_config, get_testcase_config
 testcases = {}
 test_list = {}
 test_seq = []
+test_mounts = {}
 globl_configs = {}
 global_mode = None
 tc = None
-supported_vol_types = {}
 
 
 def distaf_init(config_file="config.yml"):
@@ -50,39 +50,44 @@ def testcase(name):
 
         def wrapper(self):
             tc.logger.info("Starting the test: %s" % name)
-            voltype = test_seq.pop(0)
+            voltype, mount_proto = test_seq.pop(0)
             inject_gluster_logs("%s_%s" % (voltype, name))
             _ret = True
             globl_configs['reuse_setup'] = tc_config['reuse_setup']
-            if not global_mode:
-                globl_configs.update(tc_config)
-                globl_configs['voltype'] = voltype
+            globl_configs.update(tc_config)
+            globl_configs['voltype'] = voltype
+            globl_configs['mount_proto'] = mount_proto
             if isinstance(func, FunctionType):
                 _ret = func()
             else:
-                func_obj = func(globl_configs)
-                ret = func_obj.setup()
-                if not ret:
-                    tc.logger.error("The setup of %s failed" % name)
-                    _ret = False
-                if _ret:
-                    ret = func_obj.run()
+                try:
+                    func_obj = func(globl_configs)
+                    ret = func_obj.setup()
                     if not ret:
-                        tc.logger.error("The execution of testcase %s failed" \
-                                % name)
+                        tc.logger.error("The setup of %s failed" % name)
                         _ret = False
-                ret = func_obj.teardown()
-                if not ret:
-                    tc.logger.error("The teardown of %s failed" % name)
-                    _ret = False
-                if len(test_seq) == 0 or voltype != test_seq[0]:
-                    tc.logger.info("Last test case to use %s volume type" \
-                            % voltype)
-                    ret = func_obj.cleanup()
+                    if _ret:
+                        ret = func_obj.run()
+                        if not ret:
+                            tc.logger.error("The execution of testcase %s " \
+                                    "failed" % name)
+                            _ret = False
+                    ret = func_obj.teardown()
                     if not ret:
-                        tc.logger.error("The cleanup of volume %s failed" \
-                                % name)
+                        tc.logger.error("The teardown of %s failed" % name)
                         _ret = False
+                    if len(test_seq) == 0 or voltype != test_seq[0][0]:
+                        tc.logger.info("Last test case to use %s volume type" \
+                                % voltype)
+                        ret = func_obj.cleanup()
+                        if not ret:
+                            tc.logger.error("The cleanup of volume %s failed" \
+                                    % name)
+                            _ret = False
+                except Exception as exception:
+                    tc.logger.error("Exception: %s: %s" % \
+                            ((type(exception).__name__), exception.args))
+                    _ret = False
             self.assertTrue(_ret, "Testcase %s failed" % name)
             inject_gluster_logs("%s_%s" % (voltype, name))
             tc.logger.info("Ending the test: %s" % name)
@@ -97,6 +102,7 @@ def testcase(name):
                     test_list[voltype].insert(0, name)
                 else:
                     test_list[voltype].append(name)
+            test_mounts[name] = tc_config['runs_on_protocol']
         return wrapper
 
     return decorator
