@@ -3,19 +3,19 @@
  remote_user: root
 
  nodes:
-    vm9:
+    server-vm1:
         devices: ["/dev/vdb", "/dev/vdc", "/dev/vdd", "/dev/vde"]
-    vm10:
+    server-vm2:
         devices: ["/dev/vdb", "/dev/vdc", "/dev/vdd", "/dev/vde"]
-    vm11:
+    server-vm3:
         devices: ["/dev/vdb", "/dev/vdc", "/dev/vdd", "/dev/vde"]
-    vm12:
+    server-vm4:
         devices: ["/dev/vdb", "/dev/vdc", "/dev/vdd", "/dev/vde"]
 
  peers:
 
  clients:
-    vm12:
+     client-vm:
 
  distribute:
      dist_count: 4
@@ -46,8 +46,8 @@
  volumes:
     hosdu:
         voltype: replicate
-        nodes: [ vm9, vm10, vm11 ]
+        nodes: [ server-vm1, server-vm2, server-vm3, server-vm4 ]
         peers:
-        clients: [ vm12 ]
+            clients: [ client-vm ]
         mount_proto: glusterfs
         mountpoint: '/mnt/glusterfs'

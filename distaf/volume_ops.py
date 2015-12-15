@@ -10,7 +10,6 @@ try:
     import xml.etree.cElementTree as etree
 except ImportError:
     import xml.etree.ElementTree as etree
-from distaf.quota_ops import enable_quota, set_quota_limit
 from distaf.gluster_init import env_setup_servers, start_glusterd
 
 """
@@ -158,6 +157,23 @@ def reset_volume(volname, mnode='', force=False):
     return True
 
 
+def cleanup_volume(volname, mnode=''):
+    """
+        stops and deletes the volume
+        returns True on success and False otherwise
+
+        TODO: Add snapshot cleanup part here
+    """
+    if mnode == '':
+        mnode = tc.nodes[0]
+    ret = stop_volume(volname, mnode, True) | \
+            delete_volume(volname, mnode)
+    if not ret:
+        tc.logger.error("Unable to cleanup the volume %s" % volname)
+        return False
+    return True
+
+
 def setup_meta_vol(servers=''):
     """
         Creates, starts and mounts the gluster meta-volume on the servers
@@ -233,6 +249,7 @@ def setup_vol(volname='', dist='', rep='', dispd='', red='', stripe='', \
     if not ret:
         tc.logger.error("glusterd did not start in at least one server")
         return False
+    time.sleep(5)
     ret = peer_probe(servers[0], servers[1:])
     if not ret:
         tc.logger.error("Unable to peer probe one or more machines")

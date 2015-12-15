@@ -46,14 +46,14 @@ def inject_gluster_logs(label, servers=''):
 
 def testcase(name):
     def decorator(func):
-        if not global_mode:
-            tc_config = get_testcase_config(func.__doc__)
+        tc_config = get_testcase_config(func.__doc__)
 
         def wrapper(self):
             tc.logger.info("Starting the test: %s" % name)
             voltype = test_seq.pop(0)
             inject_gluster_logs("%s_%s" % (voltype, name))
             _ret = True
+            globl_configs['reuse_setup'] = tc_config['reuse_setup']
             if not global_mode:
                 globl_configs.update(tc_config)
                 globl_configs['voltype'] = voltype
@@ -73,8 +73,16 @@ def testcase(name):
                         _ret = False
                 ret = func_obj.teardown()
                 if not ret:
-                    tc.logger.error("The cleanup of %s failed" % name)
+                    tc.logger.error("The teardown of %s failed" % name)
                     _ret = False
+                if len(test_seq) == 0 or voltype != test_seq[0]:
+                    tc.logger.info("Last test case to use %s volume type" \
+                            % voltype)
+                    ret = func_obj.cleanup()
+                    if not ret:
+                        tc.logger.error("The cleanup of volume %s failed" \
+                                % name)
+                        _ret = False
             self.assertTrue(_ret, "Testcase %s failed" % name)
             inject_gluster_logs("%s_%s" % (voltype, name))
             tc.logger.info("Ending the test: %s" % name)

@@ -1,6 +1,6 @@
 from distaf.util import tc
-from distaf.volume_ops import setup_vol, get_volume_info
 from distaf.mount_ops import umount_volume
+from distaf.volume_ops import setup_vol, get_volume_info, cleanup_volume
 
 class DistafTestClass():
     """
@@ -28,7 +28,9 @@ class DistafTestClass():
             self.volname = "%s-testvol" % self.voltype
             self.nodes = config_data['nodes'].keys()
             self.clients = config_data['clients'].keys()
-            self.peers = config_data['peers'].keys()
+            self.peers = []
+            if config_data['peers'] is not None:
+                self.peers = config_data['peers'].keys()
             self.mount_proto = 'glusterfs'
             self.mountpoint = '/mnt/glusterfs'
         self.mnode = self.nodes[0]
@@ -42,6 +44,11 @@ class DistafTestClass():
         if volinfo is not None and self.volname in volinfo.keys():
             tc.logger.debug("The volume %s is already present in %s" \
                     % (self.volname, self.mnode))
+            if not self.config_data['reuse_setup']:
+                ret = cleanup_volume(self.volname, self.mnode)
+                if not ret:
+                    tc.logger.error("Unable to cleanup the setup")
+                    return False
         else:
             dist = rep = dispd = red = stripe = 1
             trans = ''
@@ -61,23 +68,28 @@ class DistafTestClass():
                 trans = self.config_data[self.voltype]['transport']
             elif self.voltype == 'dist_disperse':
                 dist = self.config_data[self.voltype]['dist_count']
-                disp = self.config_data[self.voltype]['disperse']
+                dispd = self.config_data[self.voltype]['disperse']
                 red = self.config_data[self.voltype]['redundancy']
                 trans = self.config_data[self.voltype]['transport']
             else:
                 tc.logger.error("The volume type is not present")
                 return False
-
-        ret = setup_vol(self.volname, dist, rep, dispd, red, stripe, trans, \
-                servers=self.nodes)
-        if not ret:
-            tc.logger.error("Unable to setup volume %s. Aborting")
-            return False
+            ret = setup_vol(self.volname, dist, rep, dispd, red, \
+                            stripe, trans, servers=self.nodes)
+            if not ret:
+                tc.logger.error("Unable to setup volume %s. Aborting")
+                return False
         return True
 
     def teardown(self):
         """
-            The function to clean up the setup
+            The function to cleanup the test setup
         """
         umount_volume(self.clients[0], self.mountpoint)
         return True
+
+    def cleanup(self):
+        """
+            The function to cleanup the volume
+        """
+        return cleanup_volume(self.volname, self.mnode)
