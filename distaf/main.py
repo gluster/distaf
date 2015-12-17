@@ -57,6 +57,8 @@ def set_tests(tests=''):
     for voltype, vol_tests in test_list.iteritems():
         for test in vol_tests:
             if test in tests:
+                if test not in test_mounts:
+                    test_mounts[test] = ['']
                 for mount in test_mounts[test]:
                     try:
                         setattr(gluster_tests, "test_%d_%s_%s_%s" % \
