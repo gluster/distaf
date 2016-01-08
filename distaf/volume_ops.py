@@ -10,7 +10,6 @@ try:
     import xml.etree.cElementTree as etree
 except ImportError:
     import xml.etree.ElementTree as etree
-from distaf.quota_ops import enable_quota, set_quota_limit
 from distaf.gluster_init import env_setup_servers, start_glusterd
 
 """
@@ -126,6 +125,9 @@ def delete_volume(volname, mnode=''):
     if mnode == '':
         mnode = tc.nodes[0]
     volinfo = get_volume_info(volname, mnode)
+    if volinfo is None:
+        tc.logger.info("Volume %s does not exist in %s" % (volname, mnode))
+        return True
     bricks = volinfo[volname]['bricks']
     ret = tc.run(mnode, "gluster volume delete %s --mode=script" % volname)
     if ret[0] != 0:
@@ -154,6 +156,23 @@ def reset_volume(volname, mnode='', force=False):
     ret = tc.run(mnode, "gluster volume reset %s %s --mode=script" \
             % (volname, frce))
     if ret[0] != 0:
+        return False
+    return True
+
+
+def cleanup_volume(volname, mnode=''):
+    """
+        stops and deletes the volume
+        returns True on success and False otherwise
+
+        TODO: Add snapshot cleanup part here
+    """
+    if mnode == '':
+        mnode = tc.nodes[0]
+    ret = stop_volume(volname, mnode, True) | \
+            delete_volume(volname, mnode)
+    if not ret:
+        tc.logger.error("Unable to cleanup the volume %s" % volname)
         return False
     return True
 
@@ -218,20 +237,6 @@ def setup_vol(volname='', dist='', rep='', dispd='', red='', stripe='', \
 
         Returns True on success and False for failure.
     """
-    if volname == '':
-        volname = tc.config_data['VOLNAME']
-    if dist == '':
-        dist = tc.config_data['DIST_COUNT']
-    if rep == '':
-        rep = tc.config_data['REP_COUNT']
-    if dispd == '':
-        dispd = tc.config_data['DISPERSE']
-    if red == '':
-        red = tc.config_data['REDUNDANCY']
-    if stripe == '':
-        stripe = tc.config_data['STRIPE']
-    if trans == '':
-        trans = tc.config_data['TRANS_TYPE']
     if servers == '':
         servers = tc.nodes
     volinfo = get_volume_info(server=servers[0])
@@ -247,6 +252,7 @@ def setup_vol(volname='', dist='', rep='', dispd='', red='', stripe='', \
     if not ret:
         tc.logger.error("glusterd did not start in at least one server")
         return False
+    time.sleep(5)
     ret = peer_probe(servers[0], servers[1:])
     if not ret:
         tc.logger.error("Unable to peer probe one or more machines")
@@ -266,18 +272,6 @@ def setup_vol(volname='', dist='', rep='', dispd='', red='', stripe='', \
     if not ret:
         tc.logger.error("volume start %s failed" % volname)
         return False
-    if tc.config_data['ENABLE_QUOTA'] == 'True':
-        ret0 = enable_quota(volname, servers[0])
-        ret1 = set_quota_limit(volname, server=servers[0])
-        if ret0[0] != 0 or ret1[0] != 0:
-            tc.logger.error("Quota setup failed")
-            return False
-    if tc.config_data['ENABLE_USS'] == 'True':
-        ret = tc.run(servers[0], "gluster volume set %s features.uss enable" \
-                % volname)
-        if ret[0] != 0:
-            tc.logger.error("Unable to enable USS for volume %s" % volname)
-            return False
     tc.global_flag[volname] = True
     return True
 

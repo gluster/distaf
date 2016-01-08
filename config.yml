@@ -1,0 +1,53 @@
+ log_file: /var/log/tests/changes_demo.log
+ log_level: DEBUG
+ remote_user: root
+
+ nodes:
+    server-vm1:
+        devices: ["/dev/vdb", "/dev/vdc", "/dev/vdd", "/dev/vde"]
+    server-vm2:
+        devices: ["/dev/vdb", "/dev/vdc", "/dev/vdd", "/dev/vde"]
+    server-vm3:
+        devices: ["/dev/vdb", "/dev/vdc", "/dev/vdd", "/dev/vde"]
+    server-vm4:
+        devices: ["/dev/vdb", "/dev/vdc", "/dev/vdd", "/dev/vde"]
+
+ peers:
+
+ clients:
+     client-vm:
+
+ distribute:
+     dist_count: 4
+     transport: tcp
+
+ replicate:
+     replica: 3
+     transport: tcp
+
+ dist_rep:
+     dist_count: 2
+     replica: 2
+     transport: tcp
+
+ disperse:
+     disperse: 4
+     redundancy: 2
+     transport: tcp
+
+ dist_disperse:
+     dist_count: 2
+     disperse: 4
+     redundancy: 2
+     transport: tcp
+
+ global_mode: False
+
+ volumes:
+    hosdu:
+        voltype: replicate
+        nodes: [ server-vm1, server-vm2, server-vm3, server-vm4 ]
+        peers:
+            clients: [ client-vm ]
+        mount_proto: glusterfs
+        mountpoint: '/mnt/glusterfs'
