@@ -42,8 +42,6 @@ class BigBang():
         self.connection_handles = {}
         self.subp_conn = {}
         for node in self.all_nodes:
-            self.connection_handles[node] = {}
-            self.subp_conn[node] = {}
             self.logger.debug("Connecting to node: %s" % node)
             ret = self.establish_connection(node, self.user)
             if not ret:
@@ -62,6 +60,8 @@ class BigBang():
             Returns True on success and False otherwise
         """
         try:
+            self.connection_handles[node] = {}
+            self.subp_conn[node] = {}
             rem = SshMachine(node, user)
             dep = DeployedServer(rem)
             conn = dep.classic_connect()
@@ -154,6 +154,9 @@ class BigBang():
             stdout=c.modules.subprocess.PIPE, stderr=c.modules.subprocess.PIPE)
 
         def value():
+            """
+                A function which returns the tuple of (retcode, stdout, stdin)
+            """
             pout, perr = p.communicate()
             retc = p.returncode
             c.close()
@@ -290,9 +293,9 @@ class BigBang():
         else:
             group = user
             grp_add_cmd = '-U'
-        ret = self.run(node, \
-"useradd -m %s -p $(perl -e'print crypt(%s, \"salt\")') %s" % \
-(grp_add_cmd, password, user), user='root')
+        ret = self.run(node, "useradd -m %s -p $(perl -e'print " \
+                             "crypt(%s, \"salt\")') %s" \
+                             % (grp_add_cmd, password, user), user='root')
         if ret[0] != 0:
             self.logger.error("Unable to add the user %s to %s" % (user, node))
             return False
