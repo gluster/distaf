@@ -84,9 +84,8 @@ def testcase(name):
                             tc.logger.error("The cleanup of volume %s failed" \
                                     % name)
                             _ret = False
-                except Exception as exception:
-                    tc.logger.error("Exception: %s: %s" % \
-                            ((type(exception).__name__), exception.args))
+                except:
+                    tc.logger.exception("Exception while running %s" % name)
                     _ret = False
             self.assertTrue(_ret, "Testcase %s failed" % name)
             inject_gluster_logs("%s_%s" % (voltype, name))

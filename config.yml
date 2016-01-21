@@ -1,4 +1,4 @@
- log_file: /var/log/tests/changes_demo.log
+ log_file: /var/log/tests/distaf_test_run.log
  log_level: DEBUG
  remote_user: root
 
