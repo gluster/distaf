@@ -27,12 +27,16 @@ def get_testcase_config(config_string):
         @returns: python dict with config values on Success
                   Upon failure None
     """
-    if config_string == '':
-        return None
-    try:
-        config_dict = yaml.load(config_string)
-    except yaml.YAMLError:
-        return None
+    if not config_string:
+        config_dict = {}
+        config_dict['runs_on_volumes'] = 'ALL'
+        config_dict['runs_on_protocol'] = 'ALL'
+        config_dict['reuse_setup'] = True
+    else:
+        try:
+            config_dict = yaml.load(config_string)
+        except yaml.YAMLError:
+            return None
     if 'runs_on_volumes' not in config_dict:
         config_dict['runs_on_volumes'] = 'ALL'
     if config_dict['runs_on_volumes'] == 'ALL':

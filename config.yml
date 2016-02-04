@@ -47,7 +47,7 @@
     hosdu:
         voltype: replicate
         nodes: [ server-vm1, server-vm2, server-vm3, server-vm4 ]
-        peers:
-            clients: [ client-vm ]
+        peers: []
+        clients: [ client-vm ]
         mount_proto: glusterfs
         mountpoint: '/mnt/glusterfs'

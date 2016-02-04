@@ -5,7 +5,6 @@ import re
 import sys
 import unittest
 import argparse
-import xmlrunner
 
 __version__ = '0.0.2'
 
@@ -105,6 +104,7 @@ def main():
     unittest.TestLoader.sortTestMethodsUsing = sortcmp
 
     if args.xmldir != None:
+        import xmlrunner
         runner = xmlrunner.XMLTestRunner(output=args.xmldir)
     else:
         runner = unittest.TextTestRunner(verbosity=2)
