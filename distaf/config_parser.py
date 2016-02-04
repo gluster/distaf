@@ -36,16 +36,19 @@ def get_testcase_config(config_string):
         try:
             config_dict = yaml.load(config_string)
         except yaml.YAMLError:
-            return None
+            config_dict = {}
+            config_dict['runs_on_volumes'] = 'ALL'
+            config_dict['runs_on_protocol'] = 'ALL'
+            config_dict['reuse_setup'] = True
     if 'runs_on_volumes' not in config_dict:
         config_dict['runs_on_volumes'] = 'ALL'
     if config_dict['runs_on_volumes'] == 'ALL':
         config_dict['runs_on_volumes'] = ['distribute', 'replicate', \
-                'dist_rep', 'disperse', 'dist_disperse' ]
+                'dist_rep', 'disperse', 'dist_disperse']
     if 'runs_on_protocol' not in config_dict:
         config_dict['runs_on_protocol'] = 'ALL'
     if config_dict['runs_on_protocol'] == 'ALL':
-        config_dict['runs_on_protocol'] = ['glusterfs', 'nfs' ]
+        config_dict['runs_on_protocol'] = ['glusterfs', 'nfs']
     if 'reuse_setup' not in config_dict:
         config_dict['reuse_setup'] = True
     return config_dict
