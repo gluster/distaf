@@ -59,10 +59,13 @@ class BigBang():
             be handled by the calling function
             Returns True on success and False otherwise
         """
+        keyfile = None
+        if 'ssh_keyfile' in self.global_config:
+            keyfile = self.global_config['ssh_keyfile']
         try:
             self.connection_handles[node] = {}
             self.subp_conn[node] = {}
-            rem = SshMachine(node, user)
+            rem = SshMachine(node, user, keyfile=keyfile)
             dep = DeployedServer(rem)
             conn = dep.classic_connect()
             self.connection_handles[node][user] = (rem, dep, conn)
