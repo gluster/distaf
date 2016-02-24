@@ -12,7 +12,7 @@
     server-vm4:
         devices: ["/dev/vdb", "/dev/vdc", "/dev/vdd", "/dev/vde"]
 
- peers:
+ peers: {}
 
  clients:
      client-vm:
