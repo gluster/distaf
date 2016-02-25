@@ -92,6 +92,7 @@ def peer_status(pnode=''):
     """
         Does peer status on the given node
         Returns: On success, peer status information in list of dicts
+                 If there is only one peer, then an empty list is sent
                  On failure, None
     """
     if pnode == '':
@@ -102,7 +103,12 @@ def peer_status(pnode=''):
                 % pnode)
         return None
 
-    status_list = ret[1].split('\n\n')[1:]
+    status_list = ret[1].strip().split('\n')
+    if "Number of Peers: 0" == status_list[0] and len(status_list) == 1:
+        tc.logger.debug("Only one server in the cluster")
+        return status_list[1:]
+
+    status_list = status_list[1:]
     peer_list = []
     for status in status_list:
         stat = [stat for stat in status.split('\n') if stat != '']
@@ -127,7 +133,9 @@ def validate_peer_status(pnode='', servers=''):
 
     check_flag = False
     status = peer_status(pnode)
-    if status is None:
+    if status == []:
+        return True
+    if status == None:
         return False
 
     for stat in status:
