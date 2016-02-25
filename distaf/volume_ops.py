@@ -142,7 +142,7 @@ def delete_volume(volname, mnode=''):
     if mnode == '':
         mnode = tc.nodes[0]
     volinfo = get_volume_info(volname, mnode)
-    if volinfo is None:
+    if volinfo is None or volname not in volinfo:
         tc.logger.info("Volume %s does not exist in %s" % (volname, mnode))
         return True
     bricks = volinfo[volname]['bricks']
