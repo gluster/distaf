@@ -37,22 +37,30 @@ def get_global_config(config_file):
     return configs
 
 
-def get_testcase_config(config_string):
+def get_testcase_config(doc_string):
     """
-        Parses the yaml structure config string passed to the function
+    Parses the config yaml structure from the
+        doc string passed to the function
 
-        @params: config string of yaml structure
-        @returns: python dict with config values on Success
-                  Upon failure None
+    @params: doc string with yaml structure
+    @returns: python dict with config values on Success
+              Upon failure python dict with defaults
     """
-    if not config_string:
+    if not doc_string:
         config_dict = {}
         config_dict['runs_on_volumes'] = 'ALL'
         config_dict['runs_on_protocol'] = 'ALL'
         config_dict['reuse_setup'] = True
     else:
+        if "---\n" in doc_string:
+            config_string = doc_string.split("---\n")[1]
+        else:
+            config_string = doc_string
+
         try:
             config_dict = yaml.load(config_string)
+            if isinstance(config_dict, str):
+                config_dict = {}
         except yaml.YAMLError:
             config_dict = {}
             config_dict['runs_on_volumes'] = 'ALL'

@@ -20,9 +20,10 @@ from distaf.util import tc, testcase
 from distaf.distaf_base_class import DistafTestClass
 
 
-@testcase("this_should_pass")
-class GoingToPass(DistafTestClass):
-    """ Testing connectivity and framework pass
+# An example with both doc and config in docstring
+@testcase("doc_and_config_test")
+class DocAndConfig(DistafTestClass):
+    """ Testing docstring configuration options
     This is an example of a basic distaf test with mixed comment and config
     Any necessary description doc string text goes here and can include any
         plain text normally found in a docstring.
@@ -37,19 +38,15 @@ class GoingToPass(DistafTestClass):
       - tag2
       - tag3
     """
-    def setup(self):
-        return True
-
     def run(self):
+        tc.logger.info("Running with doc and config in docstring")
         config = self.config_data
-        tc.logger.info("Testing connection and command exec")
-        tc.logger.debug("Tag 1 is %s" % config["tags"][0])
-        ret, _, _ = tc.run(self.nodes[0], "hostname")
-        if ret != 0:
-            tc.logger.error("hostname command failed")
-            return False
-        else:
+        tc.logger.debug("Tag 2 is %s" % config["tags"][1])
+        tag2 = config["tags"][1]
+        if tag2 == "tag2":
             return True
+
+        return False
 
     def setup(self):
         return True
@@ -61,10 +58,10 @@ class GoingToPass(DistafTestClass):
         return True
 
 
-@testcase("this_should_fail")
-class GoingToFail(DistafTestClass):
-    """ Testing connectivity and fail
-    ---
+# An example with only config in docstring
+@testcase("config_only_test")
+class ConfigOnly(DistafTestClass):
+    """
     runs_on_volumes: [ distributed ]
     runs_on_protocol: [ glusterfs, cifs ]
     reuse_setup: False
@@ -73,19 +70,55 @@ class GoingToFail(DistafTestClass):
       - tag2
       - tag3
     """
+    def run(self):
+        tc.logger.info("Running with only config in docstring")
+        config = self.config_data
+        tc.logger.debug("Tag 2 is %s" % config["tags"][1])
+        tag2 = config["tags"][1]
+        if tag2 == "tag2":
+            return True
+
+        return False
+
     def setup(self):
         return True
 
+    def cleanup(self):
+        return True
+
+    def teardown(self):
+        return True
+
+
+# An example with only doc in docstring
+@testcase("doc_only_test")
+class DocOnly(DistafTestClass):
+    """ Testing docstring configuration options
+    This is an example of a basic distaf test with mixed comment and config
+    Any necessary description doc string text goes here and can include any
+        plain text normally found in a docstring.
+    """
     def run(self):
-        config = self.config_data
-        tc.logger.info("Testing fail output")
-        tc.logger.debug("Tag 1 is %s" % config["tags"][0])
-        ret, _, _ = tc.run(self.nodes[0], "false")
-        if ret != 0:
-            tc.logger.error("false command failed")
-            return False
-        else:
-            return True
+        tc.logger.info("Running with only doc in docstring")
+        return True
+
+    def setup(self):
+        return True
+
+    def cleanup(self):
+        return True
+
+    def teardown(self):
+        return True
+
+
+# An example without a docstring
+@testcase("no_docstring_test")
+class NoDocstring(DistafTestClass):
+    def run(self):
+        tc.logger.info("Running with no docstring")
+
+        return True
 
     def setup(self):
         return True
