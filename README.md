@@ -58,6 +58,16 @@ How to run
 
  - To create junit output in directory /tmp/test_results: `python main.py -j /tmp/test_results`
 
+ - To specify one or more yaml formatted config files at the command-line:
+    - single config file
+    ```python main.py -c config_filename```
+    - multiple config files
+    ```python main.py -c "config_filename1 config_filename2"```
+    - multiple config files with bash filename expansion
+    ```python main.py -c "`ls config_*`"```
+    - multiple config files listed in a single file
+    ```python main.py -c "`cat configlist.txt`"```
+
 How to write tests
 ====================
 

@@ -30,12 +30,13 @@ global_mode = None
 tc = None
 
 
-def distaf_init(config_file="config.yml"):
+def distaf_init(config_file_string="config.yml"):
     """
         The distaf init function which calls the  BigBang
     """
+    config_files = config_file_string.split()
     global globl_configs, global_mode, tc
-    globl_configs = get_global_config(config_file)
+    globl_configs = get_global_config(config_files)
     global_mode = globl_configs['global_mode']
     tc = BigBang(globl_configs)
     return globl_configs
