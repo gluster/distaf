@@ -19,13 +19,15 @@
 import yaml
 
 
-def get_global_config(config_file):
+def get_global_config(config_files):
     """
         Gets all the config data from the distaf_config.yml file
 
         Returns the parsed output of config in a dictionary format
     """
-    configs = yaml.load(open(config_file, 'r'))
+    configs = {}
+    for config_file in config_files:
+        configs.update(yaml.load(open(config_file, 'r')))
     for vol in configs['volumes']:
         for node in configs['volumes'][vol]['nodes']:
             if node not in configs['nodes']:
@@ -34,6 +36,7 @@ def get_global_config(config_file):
             for node in configs['volumes'][vol]['peers']:
                 if node not in configs['peers']:
                     configs['nodes'][node] = {}
+
     return configs
 
 
