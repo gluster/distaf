@@ -1,97 +1,53 @@
 DiSTAF - Di'stributed Systems Test Automation Framework
 ========================================================
 
-DiSTAF is a test automation framework for distributed systems. Although the
-framework is written with glusterfs in mind, this can be used for test automation
-of many distributed systems. And this framework is written with portability in
-mind. It just needs ip addresses or resolvable hostnames of servers and clients.
-The servers and clients can be physical machines or vms or even linux conatiners.
+DiSTAF is a test automation framework for distributed systems. And it used for test automation of glusterfs and its related projects. And this framework is written with modularity in mind. So many parts of it can be modified for the liking of the project, without affecting other parts. DiSTAF can be used to test projects which runs on physical machines, virtual machines or even containers. DiSTAF  requires remote machines (or containers) to be reachable by IP address (or FQDN). And On Linux systems it requires sshd to be running in the remote systems with bash environment as well.
 
-**About the name:**
+
+## About the name
 DiSTAF (or distaf) is short for Di'stributed Systems Test Automation Framework.
-Also distaff is a tool used in spinning, which is designed to hold unspun fibres
-together keeping them untangled and thus easing the process of spinning. This
-frameowrk is trying to do just that, keeping the machines untangled and and easing
-the process of writing and executing the test cases. Hence the name DiSTAF (distaf)
+Also distaff is a tool used in spinning, which is designed to hold unspun fibres together keeping them untangled and thus easing the process of spinning.
+This frameowrk is trying to do just that, keeping the machines untangled and and easing the process of writing and executing the test cases. Hence the name DiSTAF (distaf).
 
 Architecture of the Framework
 ==============================
-**Terminologies used:**
-* *Management node* or *rpyc client* - The node from which this test suite is executed. This node is responsible for orchestration of test automation.
-* *Test machines* - These include all the machines/nodes/servers participating in tests.
 
-By default, all *test machines* run sshd. *Management node* connects to *test machines*
-using rpyc zero-deploy, which internally makes use of ssh tunnelling protocol for
-establishing and maintaining the secure connections. The connection is kept open for
-the entire duration of the tests. All the synchronous commands run by the test cases,
-uses this connection to run them. For asynchronous calls, a new connection is opened.
-This connection will be closed when async command returns.
+> Terminologies used
+>* **Management node** - The node from which this test suite is executed. This node is responsible for orchestration of test automation.
+>* **Test machines** - These include all the systems that participate in the tests. This can be physical machines, VMs or containers.
 
-And python unittest is used for running tests and generating the results results.
+![Arhcitecture of distaf](docs/images/distaf_acrhitecture.jpg)
 
-How to Setup
-================
-1. Clone this git repo and cd in to it i.e. `cd distaf` on the *Management Node*.
-2. Populate the config.sh with your environment details. And then source the config.sh  
-   `. config.sh`
-2. Establish a passwordless ssh between *Management Node* to all *test machines*.  
-   `./libs/create_passwdless_ssh.sh`.  
-    This will ask for the password of all your test machines.
+To run distaf, passwordless ssh should be setup from *management node* to all the *test machines*. The *management node* connects to *test machines* using rpyc zero-deploy, which internally makes use of ssh tunnelling protocol for establishing and maintaining the secure connections. The connection is kept open for the entire duration of the tests. All the synchronous commands run by the test cases, uses this connection to run them. For asynchronous calls, a new connection is opened. This connection will be closed when async command returns.
 
-How to run
-=============
+DiSTAF uses `python-unittest` for running tests and generating the results.
 
-###On the management node
- - Source the config.sh file which has information about test environment.
+When a test run is started, DiSTAF first reads a *config file*, which is in yaml format.
+The *config file* will have information about servers and clients DiSTAF can connect to.
+DiSTAF establishes a ssh connection to each of the servers and clients,
+and maintains the connection until the end of the test run.
+All the remote commands, bash or python will go through this connection.
+Since most gluster automation tests require a bash commands,
+DiSTAF provides two APIs to run them synchronously and asynchronously.
+For more information about distaf APIs, please refer HOWTO.
 
- - To run all test cases: `python main.py` or `./main.py`
+## Test case philosophy
 
- - To run only a specific test case: `python main.py -t basic_test`
+DiSTAF has two modes of running. The ***Global Mode*** and ***Non-global Mode***. There is a configuration variable in config.yml ***global_mode*** to toggle between them. The idea here is that each test case should be independent of the volume type and access protocol used to mount the volume.
 
- - To run multiple test cases: `python main.py -t "basic_test0 basic_test1"`
+When the distaf is started in the *non-global mode*,
+it runs each test case agaist all the volume type and mount protocol combinations.
+This means a single test case will run many times and each time a different volume and mount combination is used.
+Each test case will have it's own metadata in yaml format in test case docstring.
+For more information about the fileds and values of test case metadata (test case config), please refer to HOWTO.
 
- - To run all tests in a directory: `python main.py -d snapshot`  
+When distaf is started in *global mode*, each test case is run only once.
+The volume type and mount protocol specified in the config.yml is used for each test case.
+This is helpful if a test case needs to run against a particular type of volume, to run some checks.
 
- - To run specific tests in a specific directory: `python main.py -d snapshot -t "snaptest0 snaptest1"`
-####Note:
-     * Automation test logs are at /var/log/tests/ by default in management node. This can be changed by exporting LOG_FILE="/new/path/"
-
- - To create junit output in directory /tmp/test_results: `python main.py -j /tmp/test_results`
-
- - To specify one or more yaml formatted config files at the command-line:
-    - single config file
-    ```python main.py -c config_filename```
-    - multiple config files
-    ```python main.py -c "config_filename1 config_filename2"```
-    - multiple config files with bash filename expansion
-    ```python main.py -c "`ls config_*`"```
-    - multiple config files listed in a single file
-    ```python main.py -c "`cat configlist.txt`"```
-
-How to write tests
-====================
-
-1. Create a directory inside ./tests_d with your component name.     
-
-   Note: These directories should be importable from other modules, so the name should be a valid Python variable.
-
-2. The test should follow test_*test name*.py format.
-
-3. For test skeleton and example please look at the
-   tests_d/example/test_basic_gluster_tests.py
-
-TODO
-=====
-
-* Better test case selection logic
-* Better logging of test cases/results
-* Integrating with nose tests for Jenkins friendly reporting format
-* Glusterfs health monitoring in each servers
-* setup_fs to create the initial xfs/ext4 partition before running the tests
-
-Integration Work
-=================
-
-We are also working on integrating this project with dockit (https://github.com/humblec/dockit)
-This would enable to simulate multinode testing from a single host node. Each of the servers and clients
-would be docker containers.
+### Few things to take care before running test case in DiSTAF.
+* Setting up and provisioning the test machines. This needs to be handled before running distaf tests.
+* Updating the config.yml and setting up password-less ssh from management node to test machines.
+* Installing the glusterfs and related packages is test machines.
+* Creating xfs bricks in the gluster servers to serve as bricks. There are plans to handle this using [gdeploy] (https://github.com/gluster/gdeploy). But as of now, nothing is in place and bricks needs to be created in the remote test machines. And distaf expects this to be mounted at /bricks/bricks{0..n}. This will be made more configurable in future.
+* Keeping the test machines in the same state if a test case fails. Since distaf does not manage the bringing up and manitaining the test machine, this should be habndled outside distaf as well.
