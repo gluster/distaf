@@ -17,11 +17,11 @@
 
 
 from distaf.util import tc, testcase
-from distaf.distaf_base_class import DistafTestClass
+from distaf.gluster_base_class import GlusterBaseClass
 
 
 @testcase("this_should_pass")
-class GoingToPass(DistafTestClass):
+class GoingToPass(GlusterBaseClass):
     """ Testing connectivity and framework pass
     This is an example of a basic distaf test with mixed comment and config
     Any necessary description doc string text goes here and can include any
@@ -62,7 +62,7 @@ class GoingToPass(DistafTestClass):
 
 
 @testcase("this_should_fail")
-class GoingToFail(DistafTestClass):
+class GoingToFail(GlusterBaseClass):
     """ Testing connectivity and fail
     ---
     runs_on_volumes: [ distributed ]

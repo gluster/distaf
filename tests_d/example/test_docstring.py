@@ -17,12 +17,12 @@
 
 
 from distaf.util import tc, testcase
-from distaf.distaf_base_class import DistafTestClass
+from distaf.gluster_base_class import GlusterBaseClass
 
 
 # An example with both doc and config in docstring
 @testcase("doc_and_config_test")
-class DocAndConfig(DistafTestClass):
+class DocAndConfig(GlusterBaseClass):
     """ Testing docstring configuration options
     This is an example of a basic distaf test with mixed comment and config
     Any necessary description doc string text goes here and can include any
@@ -60,7 +60,7 @@ class DocAndConfig(DistafTestClass):
 
 # An example with only config in docstring
 @testcase("config_only_test")
-class ConfigOnly(DistafTestClass):
+class ConfigOnly(GlusterBaseClass):
     """
     runs_on_volumes: [ distributed ]
     runs_on_protocol: [ glusterfs, cifs ]
@@ -92,7 +92,7 @@ class ConfigOnly(DistafTestClass):
 
 # An example with only doc in docstring
 @testcase("doc_only_test")
-class DocOnly(DistafTestClass):
+class DocOnly(GlusterBaseClass):
     """ Testing docstring configuration options
     This is an example of a basic distaf test with mixed comment and config
     Any necessary description doc string text goes here and can include any
@@ -114,7 +114,7 @@ class DocOnly(DistafTestClass):
 
 # An example without a docstring
 @testcase("no_docstring_test")
-class NoDocstring(DistafTestClass):
+class NoDocstring(GlusterBaseClass):
     def run(self):
         tc.logger.info("Running with no docstring")
 

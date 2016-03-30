@@ -17,13 +17,13 @@
 
 
 from distaf.util import tc, testcase
-from distaf.distaf_base_class import DistafTestClass
+from distaf.gluster_base_class import GlusterBaseClass
 from distaf.mount_ops import mount_volume, umount_volume
 from distaf.volume_ops import setup_vol, stop_volume, delete_volume
 
 
 @testcase("gluster_basic_test")
-class gluster_basic_test(DistafTestClass):
+class gluster_basic_test(GlusterBaseClass):
     """
         runs_on_volumes: ALL
         runs_on_protocol: [ glusterfs, nfs ]

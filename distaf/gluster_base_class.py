@@ -20,7 +20,7 @@ from distaf.util import tc
 from distaf.mount_ops import umount_volume
 from distaf.volume_ops import setup_vol, get_volume_info, cleanup_volume
 
-class DistafTestClass():
+class GlusterBaseClass():
     """
         This is the base class for the distaf tests
 

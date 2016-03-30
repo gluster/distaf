@@ -51,20 +51,20 @@ For more info about all the APIs, please refer "DiSTAF API Guide"
     
       There is one more method `cleanup`, which is hidden. This method does the hard cleanup of gluster environment. Test case writers are not advised to use this method unless its really required. This method is called internally by DiSTAF when needed.
 
-As you can see, there are obvious advanatges of having test case as python class. So to further make the test case writing easier, a base class is written for gluster tests which does implement `setup` and `teardown` methods. This base class is called `DistafTestClass`. So all test cases should use this class as base class which creates a volume for the test case, depending on the values in configuration file. So test case class has to just implement the `run` method which has test case steps, assuming the volume is already created. Read more about these methods in the next section.
+As you can see, there are obvious advanatges of having test case as python class. So to further make the test case writing easier, a base class is written for gluster tests which does implement `setup` and `teardown` methods. This base class is called `GlusterBaseClass`. So all test cases should use this class as base class which creates a volume for the test case, depending on the values in configuration file. So test case class has to just implement the `run` method which has test case steps, assuming the volume is already created. Read more about these methods in the next section.
 
 Example skeleton of a test case in DiSTAF.
 ```python
 from distaf.util import tc, testcase
 
 @testcase("testcase_skeleton")
-class skeleton_gluster_test(DistafTestClass):
+class skeleton_gluster_test(GlusterBaseClass):
     """
     runs_on_volume: [ distribute, replicated ]
     runs_on_protocol: [ glusterfs, nfs ]
     resuse_setup: True
     summary: This is just a skeleton of a gluster test class in distaf
-    # The setup and teardown are already implemented in DistafTestClass
+    # The setup and teardown are already implemented in GlusterBaseClass
     """
     def run(self):
         tc.logger.info("The volume name is %s", self.volname)
