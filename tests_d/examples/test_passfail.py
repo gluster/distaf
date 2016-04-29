@@ -37,9 +37,6 @@ class GoingToPass(GlusterBaseClass):
       - tag2
       - tag3
     """
-    def setup(self):
-        return True
-
     def run(self):
         config = self.config_data
         tc.logger.info("Testing connection and command exec")
@@ -73,9 +70,6 @@ class GoingToFail(GlusterBaseClass):
       - tag2
       - tag3
     """
-    def setup(self):
-        return True
-
     def run(self):
         config = self.config_data
         tc.logger.info("Testing fail output")

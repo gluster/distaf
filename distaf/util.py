@@ -57,8 +57,8 @@ def inject_gluster_logs(label, servers=''):
     """
     if servers == '':
         servers = tc.all_nodes
-    cmd = "for file in `find $(gluster --print-logdir) -type f " \
-            "-name '*.log'`; do echo \"%s\" >> $file; done" % label
+    cmd = ("for file in `find $(gluster --print-logdir) -type f "
+           "-name '*.log'`; do echo \"%s\" >> $file; done" % label)
     tc.run_servers(cmd, servers=servers, verbose=False)
     return None
 
@@ -70,7 +70,10 @@ def testcase(name):
         def wrapper(self):
             tc.logger.info("Starting the test: %s" % name)
             voltype, mount_proto = test_seq.pop(0)
-            inject_gluster_logs("%s_%s" % (voltype, name))
+
+            if not tc.skip_log_inject:
+                inject_gluster_logs("%s_%s" % (voltype, name))
+
             _ret = True
             globl_configs['reuse_setup'] = tc_config['reuse_setup']
             globl_configs.update(tc_config)
@@ -88,26 +91,27 @@ def testcase(name):
                     if _ret:
                         ret = func_obj.run()
                         if not ret:
-                            tc.logger.error("The execution of testcase %s " \
-                                    "failed" % name)
+                            tc.logger.error("The execution of testcase %s "
+                                            "failed" % name)
                             _ret = False
                     ret = func_obj.teardown()
                     if not ret:
                         tc.logger.error("The teardown of %s failed" % name)
                         _ret = False
                     if len(test_seq) == 0 or voltype != test_seq[0][0]:
-                        tc.logger.info("Last test case to use %s volume type" \
-                                % voltype)
+                        tc.logger.info("Last test case to use %s volume type"
+                                       % voltype)
                         ret = func_obj.cleanup()
                         if not ret:
-                            tc.logger.error("The cleanup of volume %s failed" \
-                                    % name)
+                            tc.logger.error("The cleanup of volume %s failed"
+                                            % name)
                             _ret = False
                 except:
                     tc.logger.exception("Exception while running %s" % name)
                     _ret = False
             self.assertTrue(_ret, "Testcase %s failed" % name)
-            inject_gluster_logs("%s_%s" % (voltype, name))
+            if not tc.skip_log_inject:
+                inject_gluster_logs("%s_%s" % (voltype, name))
             tc.logger.info("Ending the test: %s" % name)
             return _ret
 

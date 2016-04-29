@@ -19,6 +19,7 @@
 import os
 import time
 import logging
+
 from plumbum import SshMachine
 from rpyc.utils.zerodeploy import DeployedServer
 
@@ -51,27 +52,52 @@ class BigBang():
         self.logger = logging.getLogger('distaf')
         self.lhndlr = logging.FileHandler(client_logfile)
         formatter = logging.Formatter('%(asctime)s %(levelname)s %(funcName)s '
-                                     '%(message)s')
+                                      '%(message)s')
         self.lhndlr.setFormatter(formatter)
         self.logger.addHandler(self.lhndlr)
         self.logger.setLevel(loglevel)
+        self.skip_log_inject = self.global_config.get('skip_log_inject', False)
 
-        # Make connections
+        # Determine default connection type
+        # Default to ssh w/ control persist
+        self.connection_engine = self.global_config.get('connection_engine',
+                                                        'ssh_controlpersist')
+        if self.connection_engine == "ssh_controlpersist":
+            self.use_ssh = True
+            self.use_controlpersist = True
+        elif self.connection_engine == "ssh":
+            self.use_ssh = True
+            self.use_controlpersist = False
+        else:
+            self.use_ssh = False
+            self.use_controlpersist = False
+
+        # connection store for _get_ssh()
+        if self.use_ssh:
+            # using separate ssh connections at the moment
+            # ssh connections are requested on-the-fly via run()
+            self.sshconns = {}
+
+        # rpyc connection handles (still needed for on-the-fly connections)
         self.connection_handles = {}
         self.subp_conn = {}
-        for node in self.all_nodes:
-            self.logger.debug("Connecting to node: %s" % node)
-            ret = self.establish_connection(node, self.user)
-            if not ret:
-                self.logger.warning("Unable to establish connection with: %s" \
-                        % node)
-            else:
-                self.logger.debug("Connected to node: %s" % node)
+        # skipping the rpyc connections until requested to speed startup time
+        # if zerodeploy delay interferes with a testcase, user can "prime" the
+        #    connection by calling establish_connection in the testcase.setup
+        if not self.use_ssh:
+            for node in self.all_nodes:
+                self.logger.debug("Connecting to node: %s" % node)
+                ret = self.establish_connection(node, self.user)
+                if not ret:
+                    self.logger.warning("Unable to establish connection "
+                                        "with: %s" % node)
+                else:
+                    self.logger.debug("Connected to node: %s" % node)
 
     def establish_connection(self, node, user):
         """
-            Establishes connection from localhost to node via SshMachine and
-            zerodeploy. The connection is authenticated and hence secure.
+            Establishes rpyc connection from localhost to node via SshMachine
+            and zerodeploy. The connection is authenticated and hence secure.
             Populates the connection in a dict called connection_handles.
             This function does not take care of timeouts. Timeouts need to
             be handled by the calling function
@@ -121,8 +147,45 @@ class BigBang():
             self.logger.critical("Unable to connect to %s" % node)
             return False
         else:
-            self.logger.debug("Connection re-established to %s" % node)
+            self.logger.debug("Connection (re-)established to %s" % node)
             return True
+
+    def _get_ssh(self, node, user):
+        """Setup a SshMachine connection for non-rpyc connections"""
+        ssh_opts = ()
+        ssh_opts += ('-T',
+                     '-oPasswordAuthentication=no',
+                     '-oStrictHostKeyChecking=no',
+                     '-oPort=22',
+                     '-oConnectTimeout=10')
+
+        keyfile = None
+        if 'ssh_keyfile' in self.global_config:
+            keyfile = self.global_config['ssh_keyfile']
+            ssh_opts += ('-o', 'IdentityFile=%s' % keyfile)
+
+        if self.use_controlpersist:
+            ssh_opts += ('-oControlMaster=auto',
+                         '-oControlPersist=30m',
+                         '-oControlPath=~/.ssh/distaf-ssh-%r@%h:%p')
+
+        ssh_opts_str = " ".join(ssh_opts)
+
+        conn_name = "%s@%s" % (user, node)
+        # if no existing connection, create one
+        if conn_name not in self.sshconns:
+            # we already have plumbum imported for rpyc, so let's use it
+            ssh = SshMachine(node, user, ssh_opts=ssh_opts)
+            self.sshconns[conn_name] = ssh
+        else:
+            ssh = self.sshconns[conn_name]
+
+        if ssh:
+            self.logger.debug("Have ssh for %s. Returning ssh." % conn_name)
+            return ssh
+
+        self.logger.error("oops. did not get ssh for %s", conn_name)
+        return None
 
     def run(self, node, cmd, user='', verbose=True):
         """
@@ -134,27 +197,56 @@ class BigBang():
         if user == '':
             user = self.user
         self.logger.info("Executing %s on %s" % (cmd, node))
-        try:
-            subp = self.subp_conn[node][user]
-            p = subp.Popen(cmd, shell=True, stdout=subp.PIPE, stderr=subp.PIPE)
-        except:
-            ret = self.refresh_connection(node, user)
-            if not ret:
-                self.logger.critical("Unable to connect to %s@%s" \
-                        % (user, node))
-                return (-1, -1, -1)
-            subp = self.subp_conn[node][user]
-            p = subp.Popen(cmd, shell=True, stdout=subp.PIPE, stderr=subp.PIPE)
-        pout, perr = p.communicate()
-        ret = p.returncode
-        self.logger.info("\"%s\" on %s: RETCODE is %d" % (cmd, node, ret))
-        if pout != "" and verbose:
-            self.logger.info("\"%s\" on %s: STDOUT is \n %s" % \
-                            (cmd, node, pout))
-        if perr != "" and verbose:
-            self.logger.error("\"%s\" on %s: STDERR is \n %s" % \
-                            (cmd, node, perr))
-        return (ret, pout, perr)
+
+        if self.use_ssh:
+            """
+            Use straight ssh for all run shell command connections,
+                and only create rpyc connections as needed.
+            """
+            ctlpersist = ''
+            if self.use_controlpersist:
+                ctlpersist = " (cp)"
+
+            # output command
+            self.logger.debug("%s@%s%s: %s", user, node, ctlpersist, cmd)
+            # run the command
+            ssh = self._get_ssh(node, user)
+            p = ssh.popen(cmd)
+            pout, perr = p.communicate()
+            prcode = p.returncode
+
+            # output command results
+            self.logger.info("RETCODE: %s" % prcode)
+            if pout != "" and verbose:
+                self.logger.info("STDOUT:\n%s" % pout)
+            if perr != "" and verbose:
+                self.logger.error("STDERR:\n%s" % perr)
+
+            return (prcode, pout, perr)
+        else:
+            try:
+                subp = self.subp_conn[node][user]
+                p = subp.Popen(cmd, shell=True,
+                               stdout=subp.PIPE, stderr=subp.PIPE)
+            except:
+                ret = self.refresh_connection(node, user)
+                if not ret:
+                    self.logger.critical("Unable to connect to %s@%s" %
+                                         (user, node))
+                    return (-1, -1, -1)
+                subp = self.subp_conn[node][user]
+                p = subp.Popen(cmd, shell=True,
+                               stdout=subp.PIPE, stderr=subp.PIPE)
+            pout, perr = p.communicate()
+            ret = p.returncode
+            self.logger.info("\"%s\" on %s: RETCODE is %d" % (cmd, node, ret))
+            if pout != "" and verbose:
+                self.logger.info("\"%s\" on %s: STDOUT is \n %s" %
+                                 (cmd, node, pout))
+            if perr != "" and verbose:
+                self.logger.error("\"%s\" on %s: STDERR is \n %s" %
+                                  (cmd, node, perr))
+            return (ret, pout, perr)
 
     def run_async(self, node, cmd, user='', verbose=True):
         """
@@ -162,38 +254,68 @@ class BigBang():
         """
         if user == '':
             user = self.user
-        try:
-            c = self.connection_handles[node][user][1].classic_connect()
-        except:
-            ret = self.refresh_connection(node, user)
-            if not ret:
-                self.logger.critical("Couldn't connect to %s" % node)
-                return None
-            c = self.connection_handles[node][user][1].classic_connect()
-        self.logger.info("Executing %s on %s asynchronously" % (cmd, node))
-        p = c.modules.subprocess.Popen(cmd, shell=True, \
-            stdout=c.modules.subprocess.PIPE, stderr=c.modules.subprocess.PIPE)
 
-        def value():
-            """
-                A function which returns the tuple of (retcode, stdout, stdin)
-            """
-            pout, perr = p.communicate()
-            retc = p.returncode
-            c.close()
-            self.logger.info("\"%s\" on \"%s\": RETCODE is %d" % \
-            (cmd, node, retc))
-            if pout != "" and verbose:
-                self.logger.debug("\"%s\" on \"%s\": STDOUT is \n %s" % \
-                (cmd, node, pout))
-            if perr != "" and verbose:
-                self.logger.error("\"%s\" on \"%s\": STDERR is \n %s" % \
-                (cmd, node, perr))
-            return (retc, pout, perr)
+        if self.use_ssh:
+            ctlpersist = ''
+            if self.use_controlpersist:
+                ctlpersist = " (cp)"
 
-        p.value = value
-        p.close = lambda: c.close()
-        return p
+            # output command
+            self.logger.debug("%s@%s%s: %s" % (user, node, ctlpersist, cmd))
+            # run the command
+            ssh = self._get_ssh(node, user)
+            p = ssh.popen(cmd)
+
+            def value():
+                stdout, stderr = p.communicate(input=cmd)
+                retcode = p.returncode
+
+                # output command results
+                self.logger.info("RETCODE: %s" % retcode)
+                if stdout:
+                    self.logger.info("STDOUT...\n%s" % stdout)
+                if stderr:
+                    self.logger.info("STDERR...\n%s" % stderr)
+
+                return (retcode, stdout, stderr)
+
+            p.value = value
+            return p
+        else:
+            try:
+                c = self.connection_handles[node][user][1].classic_connect()
+            except:
+                ret = self.refresh_connection(node, user)
+                if not ret:
+                    self.logger.critical("Couldn't connect to %s" % node)
+                    return None
+                c = self.connection_handles[node][user][1].classic_connect()
+            self.logger.info("Executing %s on %s asynchronously" % (cmd, node))
+            p = c.modules.subprocess.Popen(cmd, shell=True,
+                                           stdout=c.modules.subprocess.PIPE,
+                                           stderr=c.modules.subprocess.PIPE)
+
+            def value():
+                """
+                A function which returns the tuple of
+                (retcode, stdout, stdin)
+                """
+                pout, perr = p.communicate()
+                retc = p.returncode
+                c.close()
+                self.logger.info("\"%s\" on \"%s\": RETCODE is %d" %
+                                 (cmd, node, retc))
+                if pout != "" and verbose:
+                    self.logger.debug("\"%s\" on \"%s\": STDOUT is \n %s" %
+                                      (cmd, node, pout))
+                if perr != "" and verbose:
+                    self.logger.error("\"%s\" on \"%s\": STDERR is \n %s" %
+                                      (cmd, node, perr))
+                return (retc, pout, perr)
+
+            p.value = value
+            p.close = lambda: c.close()
+            return p
 
     def run_servers(self, command, user='', servers='', verbose=True):
         """
@@ -210,7 +332,6 @@ class BigBang():
         for server in servers:
             sdict[server] = self.run_async(server, command, user, verbose)
         for server in servers:
-            sdict[server].wait()
             ps, _, _ = sdict[server].value()
             out_dict[server] = ps
             if 0 != ps:
@@ -255,8 +376,8 @@ class BigBang():
             Returns True on success and False on failure
         """
         if 'root' not in self.connection_handles[node]:
-            self.logger.error("ssh connection to 'root' of %s is not present" \
-                    % node)
+            self.logger.error("ssh connection to 'root' of %s is not present" %
+                              node)
             return False
         conn = self.get_connection(node, 'root')
         if conn == -1:
@@ -268,8 +389,8 @@ class BigBang():
             conn.close()
             return True
         except KeyError:
-            self.logger.debug("group %s does not exist in %s. Creating now" \
-                    % (group, node))
+            self.logger.debug("group %s does not exist in %s. Creating now" %
+                              (group, node))
             conn.close()
         ret = self.run(node, "groupadd %s" % group)
         if ret[0] != 0:
@@ -290,21 +411,21 @@ class BigBang():
             dict of connection_handles
         """
         if 'root' not in self.connection_handles[node]:
-            self.logger.error("ssh connection to 'root' of %s is not present" \
-                    % node)
+            self.logger.error("ssh connection to 'root' of %s is not present" %
+                              node)
             return False
         conn = self.get_connection(node, 'root')
         if conn == -1:
-            self.logger.error("Unable to get connection to 'root' of node %s" \
-                    % node)
+            self.logger.error("Unable to get connection to 'root' of node %s" %
+                              node)
             return False
         try:
             conn.modules.pwd.getpwnam(user)
             self.logger.debug("User %s already exist in %s" % (user, node))
             return True
         except KeyError:
-            self.logger.debug("User %s doesn't exist in %s. Creating now" \
-                    % (user, node))
+            self.logger.debug("User %s doesn't exist in %s. Creating now" %
+                              (user, node))
         grp_add_cmd = ''
         if group != '':
             ret = self.add_group(node, group)
@@ -314,9 +435,10 @@ class BigBang():
         else:
             group = user
             grp_add_cmd = '-U'
-        ret = self.run(node, "useradd -m %s -p $(perl -e'print " \
-                             "crypt(%s, \"salt\")') %s" \
-                             % (grp_add_cmd, password, user), user='root')
+
+        ret = self.run(node, "useradd -m %s -p $(perl -e'print "
+                       "crypt(%s, \"salt\")') %s" %
+                       (grp_add_cmd, password, user), user='root')
         if ret[0] != 0:
             self.logger.error("Unable to add the user %s to %s" % (user, node))
             return False
@@ -329,11 +451,11 @@ class BigBang():
                     rfh.write(line)
             ruid = conn.modules.pwd.getpwnam(user).pw_uid
             rgid = conn.modules.grp.getgrnam(group).gr_gid
-            conn.modules.os.chown("/home/%s/.ssh/authorized_keys" % \
-                    user, ruid, rgid)
+            conn.modules.os.chown("/home/%s/.ssh/authorized_keys" %
+                                  user, ruid, rgid)
         except:
-            self.logger.error("Unable to write the rsa pub file to %s@%s" \
-                    % (user, node))
+            self.logger.error("Unable to write the rsa pub file to %s@%s" %
+                              (user, node))
             return False
         rfh.close()
         conn.close()
@@ -349,8 +471,8 @@ class BigBang():
         """
         for node in self.connection_handles.keys():
             for user in self.connection_handles[node].keys():
-                self.logger.debug("Closing all connection to %s@%s" \
-                        % (user, node))
+                self.logger.debug("Closing all connection to %s@%s" %
+                                  (user, node))
                 self.connection_handles[node][user][2].close()
                 self.connection_handles[node][user][1].close()
                 self.connection_handles[node][user][0].close()
