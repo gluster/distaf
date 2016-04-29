@@ -23,7 +23,7 @@ import sys
 import unittest
 import argparse
 
-__version__ = '0.0.2'
+__version__ = '0.0.3'
 
 if os.getcwd() not in sys.path:
     sys.path.append(os.getcwd())

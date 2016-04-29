@@ -17,8 +17,8 @@
 
 
 from distaf.util import tc
-from distaf.mount_ops import umount_volume
-from distaf.volume_ops import setup_vol, get_volume_info, cleanup_volume
+from distaflibs.gluster.volume_ops import (setup_vol, get_volume_info,
+                                           cleanup_volume)
 
 class GlusterBaseClass():
     """
@@ -104,7 +104,6 @@ class GlusterBaseClass():
         """
             The function to cleanup the test setup
         """
-        #umount_volume(self.clients[0], self.mountpoint)
         return True
 
     def cleanup(self):
