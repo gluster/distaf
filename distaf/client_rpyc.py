@@ -35,10 +35,10 @@ class BigBang():
         self.global_config = configs
 
         # Initialise servers and clients
-        self.nodes = self.global_config['nodes'].keys()
+        self.servers = self.global_config['servers'].keys()
         self.clients = self.global_config['clients'].keys()
-        self.all_nodes = list(set(self.nodes + self.clients))
-        self.num_servers = len(self.nodes)
+        self.all_nodes = list(set(self.servers + self.clients))
+        self.num_servers = len(self.servers)
         self.num_clients = len(self.clients)
         self.user = self.global_config['remote_user']
         self.global_flag = {}
@@ -324,7 +324,7 @@ class BigBang():
         if user == '':
             user = self.user
         if servers == '':
-            servers = self.nodes
+            servers = self.servers
         servers = list(set(servers))
         sdict = {}
         out_dict = {}
