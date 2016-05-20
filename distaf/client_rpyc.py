@@ -214,11 +214,14 @@ class BigBang():
             prcode = p.returncode
 
             # output command results
-            self.logger.info("RETCODE: %s" % prcode)
+            self.logger.info("Running %s on %s@%s RETCODE: %s",
+                             cmd, user, node,  prcode)
             if pout != "" and verbose:
-                self.logger.info("STDOUT:\n%s" % pout)
+                self.logger.info("Running %s on %s@%s STDOUT:\n%s",
+                                 cmd, user, node, pout)
             if perr != "" and verbose:
-                self.logger.error("STDERR:\n%s" % perr)
+                self.logger.error("Running %s on %s@%s STDERR:\n%s",
+                                  cmd, user, node, perr)
 
             return (prcode, pout, perr)
         else:
@@ -267,14 +270,15 @@ class BigBang():
             def value():
                 stdout, stderr = p.communicate(input=cmd)
                 retcode = p.returncode
-
                 # output command results
-                self.logger.info("RETCODE: %s" % retcode)
+                self.logger.info("Running %s on %s@%s RETCODE: %s",
+                                 cmd, user, node, retcode)
                 if stdout:
-                    self.logger.info("STDOUT...\n%s" % stdout)
+                    self.logger.info("Running %s on %s@%s STDOUT...\n%s",
+                                     cmd, user, node, stdout)
                 if stderr:
-                    self.logger.info("STDERR...\n%s" % stderr)
-
+                    self.logger.info("Running %s on %s@%s STDERR...\n%s",
+                                     cmd, user, node, stderr)
                 return (retcode, stdout, stderr)
 
             p.value = value
