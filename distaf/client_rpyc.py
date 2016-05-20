@@ -169,8 +169,6 @@ class BigBang():
                          '-oControlPersist=30m',
                          '-oControlPath=~/.ssh/distaf-ssh-%r@%h:%p')
 
-        ssh_opts_str = " ".join(ssh_opts)
-
         conn_name = "%s@%s" % (user, node)
         # if no existing connection, create one
         if conn_name not in self.sshconns:
