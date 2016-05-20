@@ -367,7 +367,10 @@ class BigBang():
         """
         if user == '':
             user = self.user
-        rem = self.connection_handles[node][user][0]
+        if self.use_ssh:
+            rem = self._get_ssh(node, user)
+        else:
+            rem = self.connection_handles[node][user][0]
         rem.upload(localpath, remotepath)
         return None
 
