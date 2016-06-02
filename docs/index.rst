@@ -12,11 +12,12 @@ User Guide
 .. toctree::
    :maxdepth: 3
 
-   userguide/intro
+   userguide/overview
+   userguide/howto
 
 
 API
-===
+---
 
 .. toctree::
     :maxdepth: 2
@@ -24,8 +25,14 @@ API
     source/distaf
 
 
+Related Libraries
+-----------------
+
+   `distaflibs-gluster: Library for Red Hat Gluster related features. <http://distaf.readthedocs.io/projects/distaflibs-gluster/>`_
+
+
 Indices and Tables
-==================
+------------------
 
 * :ref:`genindex`
 * :ref:`modindex`

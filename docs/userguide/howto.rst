@@ -1,5 +1,5 @@
-DiSTAF
-======
+How To
+------
 
 DiSTAF (or distaf) is a test framework for distributed systems like glusterfs.
 This file contains information about how to write test cases in distaf framework
@@ -7,16 +7,17 @@ and how to execute them once they are written. For information about overview
 and architecture, please refer to [README.md](https://github.com/gluster/distaf/blob/master/README.md).
 
 Little about the APIs
----------------------
+=====================
 DiSTAF exposes few APIs to interact and control the remote test machines.
 That is the core part of distaf. And since most test steps of glusterfs are
 bash/shell commands (at least on the server side), distaf exposes two APIs to
 run the bash/shell commands remotely. These APIs are actually methods of
 connection manager object and will be accessible through the object `tc`
 
-::
+.. code-block:: python
+    :linenos:
 
-    (ret, stdout, stderr) = tc.run(node, command, user='root', verbose=True)
+	(ret, stdout, stderr) = tc.run(node, command, user='root', verbose=True)
 
 
 So the `run` method execute the bash `command` in remote `node` as
@@ -28,7 +29,8 @@ very similar to `subprocess.Popen`. The object has methods to wait,
 communicate and get the return code etc. It has has another
 method `value()` to get the tuple of `(ret, stdout, stderr)`
 
-::
+.. code-block:: python
+    :linenos:
 
     popen = tc.run_async(node, command, user='root', verbose=True)
     popen.wait()
@@ -39,7 +41,8 @@ These are most used APIs for distaf. You can also request for a connection
 and run python command on the remote machines. The below example should make
 things bit more clear.
 
-::
+.. code-block:: python
+    :linenos:
 
     conn = tc.get_connection(node, user='root')
     if conn == -1:
@@ -54,7 +57,7 @@ things bit more clear.
 For more info about all the APIs, please refer "DiSTAF API Guide"
 
 Writing Tests in DiSTAF
------------------------
+=======================
 
 Things to mind before writing the tests
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -76,7 +79,8 @@ As you can see, there are obvious advanatges of having test case as python class
 
 Example skeleton of a test case in DiSTAF.
 
-::
+.. code-block:: python
+    :linenos:
 
     from distaf.util import tc, testcase
 
@@ -111,39 +115,54 @@ About the methods of test case class
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 As explained in above section, each test class should have at least `run` method implemented. The `setup` and `teardown` can be used from the base class.
 
-The `setup` method:
-~~~~~~~~~~~~~~~~~~~
+The `setup` method
+''''''''''''''''''
 This method is responsible for creating the volumes (if it doesn't exist already). Only override this class with your own implementation if you don't need to create volume as part of setup. Or have some requirement to not to do so. Note that volume will not be mounted as part of this method and has to be taken care in `run` method. Also this method takes care of cleaning up the previous volume and re-creating it if `reuse_setup=False`. So if you override this method, please consider it as well.
 
-The `run` method:
-~~~~~~~~~~~~~~~~~
+The `run` method
+''''''''''''''''
 Each test case class is supposed to implement this. This should contain the actual test case steps and should do all validations and verifications needed for the test case. This is not implemented in the base class, so this must be implemented in the test case class.
 
-The `teardown` method:
-~~~~~~~~~~~~~~~~~~~~~~
+The `teardown` method
+'''''''''''''''''''''
 If should tear down any specific things you do in `run` method. Like unmounting the volume, removing the files maybe etc.
 
-The `cleanup` method:
-~~~~~~~~~~~~~~~~~~~~~
+The `cleanup` method
+''''''''''''''''''''
 This is more of a internal method used to hard cleanup while jumping from one volume type to next volume, when the `global_mode=False`. And this will be called only if the volume type changes from one test case to next test case.
 
 Now you can start writing your test case (`run` method to be more specific. DiSTAF also has lot of gluster related library function to assist in test case writing. For more information please refer to API guide.
 
 Running the tests written in DiSTAF
------------------------------------
+===================================
 
 Before running the distaf tests, please read the [README](https://github.com/gluster/distaf/blob/master/README.md). So before running, you should have a server with glusterfs installed and a client (if your test case require it).
 
 Updating the config.yml file
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-DiSTAF reads the run time configuration paramaters from the yaml config file. Please [take a look at the sample config file](https://github.com/gluster/distaf/blob/master/config.yml). Most of the fileds explain themselves.
-* The `remote_user` field is the user with which distaf connects to remote test machines. It is to this user you should setup password-less ssh to.
-* All gluster servers will go to `nodes` field. It has subsection `devices`, which is not used at this moment. So can be ignored.
-* The `peers` and `nodes` are both gluster servers, except for `peers` is used later in test case for add brick and rebalance related testcase.
-* The next five fields are volume types and its configurations. Each field is a volume type and its respective configurations.
-* When `global_mode=True`, all test cases will be run against only one volume type and configurations. This volume type is specified in `volumes` section. If `global_mode=False`, each test case is run against all possible types of volume and mount protocol.
-* The `volumes` section is self-explanatory. Just make sure that `voltype` is one of the volume type mentioned above. Also this section is ignored when `global_mode=False`.
+DiSTAF reads the run time configuration parameters from the yaml config file.
+Please [take a look at the sample config file](https://github.com/gluster/distaf/blob/master/config.yml).
+Most of the fields explain themselves.
+
+	**remote_user**
+		the user with which distaf connects to remote test machines. It is to this user you should setup password-less ssh to.
+
+	**nodes**
+ 		All gluster servers will go to `nodes` field. It has subsection `devices`, which is not used at this moment. So can be ignored.
+
+	**peers and nodes**
+		The `peers` and `nodes` are both gluster servers, except for `peers` is used later in test case for add brick and rebalance related testcase.
+
+	**volume types**
+		The next five fields are volume types and its configurations. Each field is a volume type and its respective configurations.
+
+	**global_mode**
+		When `global_mode=True`, all test cases will be run against only one volume type and configurations.
+		This volume type is specified in `volumes` section. If `global_mode=False`, each test case is run against all possible types of volume and mount protocol.
+
+	**volumes**
+		The `volumes` section is self-explanatory. Just make sure that `voltype` is one of the volume type mentioned above. Also this section is ignored when `global_mode=False`.
 
 Starting the DiSTAF run
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -152,9 +171,9 @@ There are few ways to run the distaf test cases.
 Running all the tests in a directory
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-::
+	::
 
-    python main.py -d "dir_name"
+    	# python main.py -d "dir_name"
 
 .. Note::
 
@@ -166,27 +185,27 @@ Running all the tests in a directory
 Running all the tests in a file
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-::
+	::
 
-    python main.py -f <path_to_file>
+    	# python main.py -f <path_to_file>
 
 Make sure that is the file where test case class is implemented.
 
 Running only the tests specified
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-::
+	::
 
-    python main.py -d "dir_to_look" -t "test0 test1 test2"
+    	# python main.py -d "dir_to_look" -t "test0 test1 test2"
 
 Only the tests specified from that directory is executed. If the test case is not found, it is skipped and other test cases which are found are executed.
 
 Get the result in junit style
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-::
+	::
 
-    python main.py -d "test_dir" -t "Test0 Test1 Test2" -j "result_dir"
+    	# python main.py -d "test_dir" -t "Test0 Test1 Test2" -j "result_dir"
 
 All DiSTAF results are by default text format and thrown to the console. If you rather use Jenkins friendly junit style xml output, you should pass `-j` with a dir where results will be populated.
 
