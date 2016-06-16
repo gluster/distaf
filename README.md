@@ -6,8 +6,7 @@ DiSTAF is a test automation framework for distributed systems. It is used for te
 
 ## About the name
 DiSTAF (or distaf) is short for Di'stributed Systems Test Automation Framework.
-Also distaf is a tool used in spinning, which is designed to hold unspun fibres together keeping them untangled and thus easing the process of spinning.
-This framework is trying to do just that, keeping the machines untangled and easing the process of writing and executing the test cases. Hence the name DiSTAF (distaf).
+'distaff' is a tool used in spinning, which is designed to hold unspun fibres together keeping them untangled and thus easing the process of spinning.This framework is also trying to do just that, keeping the machines untangled and easing the process of writing and executing the test cases. Hence the name DiSTAF (distaf).
 
 Architecture of the Framework
 ==============================
