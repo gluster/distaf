@@ -35,8 +35,12 @@ class BigBang():
         self.global_config = configs
 
         # Initialise servers and clients
-        self.servers = self.global_config['servers'].keys()
-        self.clients = self.global_config['clients'].keys()
+        self.servers = []
+        self.clients = []
+        for server in self.global_config['servers']:
+            self.servers.append(server['host'])
+        for client in self.global_config['clients']:
+            self.clients.append(client['host'])
         self.all_nodes = list(set(self.servers + self.clients))
         self.num_servers = len(self.servers)
         self.num_clients = len(self.clients)
