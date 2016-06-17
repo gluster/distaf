@@ -37,7 +37,7 @@ When the distaf is started in the *non-global mode*,
 it runs each test case agaist all the volume type and mount protocol combinations.
 This means a single test case will run many times and each time a different volume and mount combination is used.
 Each test case will have it's own metadata in yaml format in test case docstring.
-For more information about the fileds and values of test case metadata (test case config), please refer to HOWTO.
+For more information about the fields and values of test case metadata (test case config), please refer to HOWTO.
 
 When distaf is started in *global mode*, each test case is run only once.
 The volume type and mount protocol specified in the config.yml is used for each test case.
@@ -46,4 +46,4 @@ This is helpful if a test case needs to run against a particular type of volume,
 ### Few things to take care before running test case in DiSTAF.
 * Setting up and provisioning the test machines. This needs to be handled before running distaf tests.
 * Updating the config.yml and setting up password-less ssh from management node to test machines.
-* Keeping the test machines in the same state if a test case fails. Since distaf does not manage the bringing up and manitaining the test machine, this should be habndled outside distaf as well.
+* Keeping the test machines in the same state if a test case fails. Since distaf does not manage the bringing up and manitaining the test machine, this should be handled outside distaf as well.
