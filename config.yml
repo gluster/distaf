@@ -1,16 +1,15 @@
  log_file: /var/log/tests/distaf_test_run.log
  log_level: DEBUG
  remote_user: root
-
  servers:
-    server-vm1:
+    -   host: server-vm1
         devices: ["/dev/vdb", "/dev/vdc", "/dev/vdd", "/dev/vde"]
-    server-vm2:
+    -   host: server-vm2
         devices: ["/dev/vdb", "/dev/vdc", "/dev/vdd", "/dev/vde"]
-    server-vm3:
+    -   host: server-vm3
         devices: ["/dev/vdb", "/dev/vdc", "/dev/vdd", "/dev/vde"]
-    server-vm4:
+    -   host: server-vm4
         devices: ["/dev/vdb", "/dev/vdc", "/dev/vdd", "/dev/vde"]
-
  clients:
-     client-vm:
+    -   host: client-vm1
+    -   host: client-vm2
