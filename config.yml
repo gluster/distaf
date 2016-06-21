@@ -13,3 +13,5 @@
  clients:
     -   host: client-vm1
     -   host: client-vm2
+
+ global_mode: True
