@@ -60,7 +60,7 @@ from distaf.util import tc, testcase
 @testcase("testcase_skeleton")
 class skeleton_gluster_test(GlusterBaseClass):
     """
-    runs_on_volume: [ distribute, replicated ]
+    runs_on_volume: [ distribute, replicate ]
     runs_on_protocol: [ glusterfs, nfs ]
     resuse_setup: True
     summary: This is just a skeleton of a gluster test class in distaf
@@ -92,44 +92,66 @@ Each test case class is supposed to implement this. This should contain the actu
 ##### The `teardown` method:
 If should tear down any specific things you do in `run` method. Like unmounting the volume, removing the files maybe etc.
 ##### The `cleanup` method:
-This is more of a internal method used to hard cleanup while jumping from one volume type to next volume, when the `global_mode=False`. And this will be called only if the volume type changes from one test case to next test case.
+This is more of a internal method used to hard cleanup while jumping from one volume type to next volume. And this will be called only if the volume type changes from one test case to next test case.
 
-Now you can start writing your test case (`run` method to be more specific. DiSTAF also has lot of gluster related library function to assist in test case writing. For more information please refer to API guide.
+Now you can start writing your test case (`run` method to be more specific). DiSTAF also has lot of gluster related library function to assist in test case writing. For more information please refer to API guide.
 
+## Installing DiSTAF package
+Please note that, to install this package you need to have python-setuptools, git(Most likely will be available through yum/apt-get) and python modules like rpyc, pyyaml (will be available through pip) and should be run with root privilages.
+```bash
+yum install python-setuptools
+easy_install pip
+yum install git
+pip install rpyc
+pip install pyyaml
+```
+The distaf core package can be installed through below command. It will install the distaf core package from the git HEAD available from distaf.git.
+```bash
+
+pip install git+https://github.com/gluster/distaf@master
+```
+If you have cloned the distaf.git, please follow the below steps to install distaf package
+```
+cd <distaf.git>
+python setup.py install
+```
+ 
 ## Running the tests written in DiSTAF
 Before running the distaf tests, please read the [README](https://github.com/gluster/distaf/blob/master/README.md). So before running, you should have a server with glusterfs installed and a client (if your test case require it).
 
 #### Updating the config.yml file
 DiSTAF reads the run time configuration paramaters from the yaml config file. Please [take a look at the sample config file](https://github.com/gluster/distaf/blob/master/config.yml). Most of the fileds explain themselves.
 * The `remote_user` field is the user with which distaf connects to remote test machines. It is to this user you should setup password-less ssh to.
-* All gluster servers will go to `nodes` field. It has subsection `devices`, which is not used at this moment. So can be ignored.
-* The `peers` and `nodes` are both gluster servers, except for `peers` is used later in test case for add brick and rebalance related testcase.
-* The next five fields are volume types and its configurations. Each field is a volume type and its respective configurations.
-* When `global_mode=True`, all test cases will be run against only one volume type and configurations. This volume type is specified in `volumes` section. If `global_mode=False`, each test case is run against all possible types of volume and mount protocol.
-* The `volumes` section is self-explanatory. Just make sure that `voltype` is one of the volume type mentioned above. Also this section is ignored when `global_mode=False`.
+* All server related details will go to servers field. It has subsection host and devices.
+* All client related details  will go to clients field.
+* You can have fields for volume types and its configurations.
+* When global_mode=True, all test cases will be run against the volume type and configuration which is mentioned in the config yaml file and ignores 'runs_on_volume' and 'runs_on_protocol' in testcase metatdata. If global_mode=False, each test case will run against all possible types of volume and mount protocol which is mentioned in the testcase metadata.
 
 #### Starting the DiSTAF run
 There are few ways to run the distaf test cases.
 
 ###### Running all the tests in a directory
 ```bash
-python main.py -d "dir_name"
+distaf -c <path_to_config_yaml_file> -d "dir_name"
 ```
 Note that distaf tries to recursively find all the tests inside. This is helpful when all the tests of a component are together in a directory and you want to run them all.
 ###### Running all the tests in a file
 ```bash
-python main.py -f <path_to_file>
+distaf -c <path_to_config_yaml_file> -f <path_to_file>
 ```
 Make sure that is the file where test case class is implemented.
 ###### Running only the tests specified
 ```bash
-python main.py -d "dir_to_look" -t "test0 test1 test2"
+distaf -c <path_to_config_yaml_file> -d "dir_to_look" -t "test0 test1 test2"
 ```
 Only the tests specified from that directory is executed. If the test case is not found, it is skipped and other test cases which are found are executed.
 ###### Get the result in junit style
 ```bash
-python main.py -d "test_dir" -t "Test0 Test1 Test2" -j "result_dir"
+distaf -c <path_to_config_yaml_file> "test_dir" -t "Test0 Test1 Test2" -j "result_dir"
 ```
 All DiSTAF results are by default text format and thrown to the console. If you rather use Jenkins friendly junit style xml output, you should pass `-j` with a dir where results will be populated.
-
+###### Running all the tests in a directory with multiple config files
+```bash
+distaf -c "<path_to_config_yaml_file1> <path_to_config_yaml_file2>" -d "dir_name"
+```
 
