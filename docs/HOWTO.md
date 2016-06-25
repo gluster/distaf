@@ -43,7 +43,7 @@ For more info about all the APIs, please refer "DiSTAF API Guide"
 * Each of the test case should have a decorator `@testcase` with the test case name.
 * Each test case should have its metadata, namely the volume type it can run on, the possible mount protocols with which it can be run and if fresh setup is required to run that test. The next section will explain a bit more about these metadata.
 * A test case can be a class or a simple function.
-    * If test case is a function, it is considered standlaone. That is, the test case should take care of starting glusterd, creating volume, cleaning up the volume after the test etc. The framework itself will not be doing anything to assist the test case function.
+    * If test case is a function, it is considered standalone. That is, the test case should take care of starting glusterd, creating volume, cleaning up the volume after the test etc. The framework itself will not be doing anything to assist the test case function.
     * If the test case is a class it should have at least three methods.
         1. `setup` - To setup part of test case. Like volume create maybe.
         2. `run` - This contains the test case steps. This part does all the validations and verifications.
@@ -51,7 +51,7 @@ For more info about all the APIs, please refer "DiSTAF API Guide"
     
       There is one more method `cleanup`, which is hidden. This method does the hard cleanup of gluster environment. Test case writers are not advised to use this method unless its really required. This method is called internally by DiSTAF when needed.
 
-As you can see, there are obvious advanatges of having test case as python class. So to further make the test case writing easier, a base class is written for gluster tests which does implement `setup` and `teardown` methods. This base class is called `GlusterBaseClass`. So all test cases should use this class as base class which creates a volume for the test case, depending on the values in configuration file. So test case class has to just implement the `run` method which has test case steps, assuming the volume is already created. Read more about these methods in the next section.
+As you can see, there are obvious advantages of having test case as python class. So to further make the test case writing easier, a base class is written for gluster tests which does implement `setup` and `teardown` methods. This base class is called `GlusterBaseClass`. So all test cases should use this class as base class which creates a volume for the test case, depending on the values in configuration file. So test case class has to just implement the `run` method which has test case steps, assuming the volume is already created. Read more about these methods in the next section.
 
 Example skeleton of a test case in DiSTAF.
 ```python
@@ -75,8 +75,8 @@ class skeleton_gluster_test(GlusterBaseClass):
 #### About the test case metadata
 Each test case has three or four metadata about the test case. These fields explain on what conditions, the test case can be run.
 
-* `runs_on_volume: ALL` - This explains on what all volume types this test case can be run. The possible values are "distribute, replicate, dist_rep, disperse, dist_disperse". As of now DiSTAF only does string comparison, so the value should match. Alternatevely you can mention ALL, which will be expaned to all possible volume types. The tiered volume type will be added soon.
-* `runs_on_protocol: glusterfs` - The posssible mount protocols which can be used to run this test case with. The possible values are glusterfs and nfs. The samba and cifs will be added soon.
+* `runs_on_volume: ALL` - This explains on what all volume types this test case can be run. The possible values are "distribute, replicate, dist_rep, disperse, dist_disperse". As of now DiSTAF only does string comparison, so the value should match. Alternatively you can mention ALL, which will be expanded to all possible volume types. The tiered volume type will be added soon.
+* `runs_on_protocol: glusterfs` - The possible mount protocols which can be used to run this test case with. The possible values are glusterfs and nfs. The samba and cifs will be added soon.
 * `reuse_setup: True` - If your test case requires a fresh setup of volume (e.g glusterfind), this should be set to False. If your testcase can reuse the existing setup, please set it to True.
 
 We plan to have few more metadata soon. Like `testcase_tags` and `runs_on_server_version` etc.
@@ -97,7 +97,7 @@ This is more of a internal method used to hard cleanup while jumping from one vo
 Now you can start writing your test case (`run` method to be more specific). DiSTAF also has lot of gluster related library function to assist in test case writing. For more information please refer to API guide.
 
 ## Installing DiSTAF package
-Please note that, to install this package you need to have python-setuptools, git(Most likely will be available through yum/apt-get) and python modules like rpyc, pyyaml (will be available through pip) and should be run with root privilages.
+Please note that, to install this package you need to have python-setuptools, git(Most likely will be available through yum/apt-get) and python modules like rpyc, pyyaml (will be available through pip) and should be run with root privileges.
 ```bash
 yum install python-setuptools
 easy_install pip
@@ -115,17 +115,17 @@ If you have cloned the distaf.git, please follow the below steps to install dist
 cd <distaf.git>
 python setup.py install
 ```
- 
+
 ## Running the tests written in DiSTAF
 Before running the distaf tests, please read the [README](https://github.com/gluster/distaf/blob/master/README.md). So before running, you should have a server with glusterfs installed and a client (if your test case require it).
 
 #### Updating the config.yml file
-DiSTAF reads the run time configuration paramaters from the yaml config file. Please [take a look at the sample config file](https://github.com/gluster/distaf/blob/master/config.yml). Most of the fileds explain themselves.
+DiSTAF reads the run time configuration parameters from the yaml config file. Please [take a look at the sample config file](https://github.com/gluster/distaf/blob/master/config.yml). Most of the fields explain themselves.
 * The `remote_user` field is the user with which distaf connects to remote test machines. It is to this user you should setup password-less ssh to.
 * All server related details will go to servers field. It has subsection host and devices.
 * All client related details  will go to clients field.
 * You can have fields for volume types and its configurations.
-* When global_mode=True, all test cases will be run against the volume type and configuration which is mentioned in the config yaml file and ignores 'runs_on_volume' and 'runs_on_protocol' in testcase metatdata. If global_mode=False, each test case will run against all possible types of volume and mount protocol which is mentioned in the testcase metadata.
+* When global_mode=True, all test cases will be run against the volume type and configuration which is mentioned in the config yaml file and ignores 'runs_on_volume' and 'runs_on_protocol' in testcase metadata. If global_mode=False, each test case will run against all possible types of volume and mount protocol which is mentioned in the testcase metadata.
 
 #### Starting the DiSTAF run
 There are few ways to run the distaf test cases.
