@@ -18,13 +18,11 @@
 
 from setuptools import setup
 
-from distaf.main import __version__ as version
-
 name = 'distaf'
 
 setup(
     name=name,
-    version=version,
+    version='0.0.3',
     description='Di\'stributed Systems Test Automation Framework',
     license='GPLv2+',
     author='Red Hat, Inc.',
